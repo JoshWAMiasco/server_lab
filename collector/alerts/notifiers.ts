@@ -12,10 +12,19 @@ type ExternalChannel = Exclude<AlertChannel, "inapp">;
 
 const REQUEST_TIMEOUT_MILLISECONDS = 10_000;
 
-
+/*
+ * Webhook URLs and bot tokens are secrets, and fetch puts the URL into its error messages. Errors
+ * are replaced with fixed text before they reach the logs, the database or the Settings page.
+ */
 async function postWithTimeout(url: string, init: RequestInit): Promise<void> {
-  const response = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MILLISECONDS) });
-  if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  if (!URL.canParse(url)) throw new Error("invalid URL");
+  let response: Response;
+  try {
+    response = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MILLISECONDS) });
+  } catch (error) {
+    throw new Error(error instanceof Error && error.name === "TimeoutError" ? "timed out" : "network error");
+  }
+  if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
 }
 
 function stripHeaderCharacters(value: string): string {
@@ -30,12 +39,12 @@ async function sendNtfy(notification: AlertNotification): Promise<void> {
   };
   const ntfyToken = readEnvironment("NTFY_TOKEN");
   if (ntfyToken) headers.Authorization = `Bearer ${ntfyToken}`;
-  await postWithTimeout(String(process.env.NTFY_URL), { method: "POST", headers, body: notification.message });
+  await postWithTimeout(readEnvironment("NTFY_URL") ?? "", { method: "POST", headers, body: notification.message });
 }
 
 async function sendDiscord(notification: AlertNotification): Promise<void> {
   const embedColor = notification.state === "firing" ? 0xff_46_55 : 0x2e_e5_9d;
-  await postWithTimeout(String(process.env.DISCORD_WEBHOOK_URL), {
+  await postWithTimeout(readEnvironment("DISCORD_WEBHOOK_URL") ?? "", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username: "ServerLab", embeds: [{ title: notification.title.slice(0, 256), description: notification.message.slice(0, 4000), color: embedColor }] }),
@@ -48,10 +57,10 @@ function escapeTelegramMarkdown(text: string): string {
 
 async function sendTelegram(notification: AlertNotification): Promise<void> {
   const prefix = notification.state === "firing" ? "🚨" : "✅";
-  await postWithTimeout(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+  await postWithTimeout(`https://api.telegram.org/bot${readEnvironment("TELEGRAM_BOT_TOKEN") ?? ""}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: process.env.TELEGRAM_CHAT_ID, parse_mode: "MarkdownV2", text: `${prefix} *${escapeTelegramMarkdown(notification.title)}*\n${escapeTelegramMarkdown(notification.message)}` }),
+    body: JSON.stringify({ chat_id: readEnvironment("TELEGRAM_CHAT_ID"), parse_mode: "MarkdownV2", text: `${prefix} *${escapeTelegramMarkdown(notification.title)}*\n${escapeTelegramMarkdown(notification.message)}` }),
   });
 }
 
