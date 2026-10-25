@@ -13,6 +13,7 @@ const RESTART_DELAY_MILLISECONDS = 5000;
 interface JournalEntry {
   MESSAGE?: string | number[];
   SYSLOG_IDENTIFIER?: string;
+  _UID?: string;
   __REALTIME_TIMESTAMP?: string;
   __CURSOR?: string;
 }
@@ -34,7 +35,13 @@ function decodeMessage(message: JournalEntry["MESSAGE"]): string {
   return message ?? "";
 }
 
-function parseJournalEntry(entry: JournalEntry): ParsedLoginEvent | null {
+/**
+ * One `journalctl -o json` entry. SYSLOG_IDENTIFIER is chosen by the sender (`logger -t sshd` sets
+ * it), so only entries whose trusted `_UID` (set by journald) is root are accepted: sshd and login
+ * log as root, any other local user does not.
+ */
+export function parseJournalEntry(entry: JournalEntry): ParsedLoginEvent | null {
+  if (entry._UID !== "0") return null;
   const message = decodeMessage(entry.MESSAGE);
   const timestamp = Math.floor(Number(entry.__REALTIME_TIMESTAMP ?? 0) / 1000) || Date.now();
   return entry.SYSLOG_IDENTIFIER === "login" ? parseConsoleLoginLine(message, timestamp) : parseSshdLine(message, timestamp);
