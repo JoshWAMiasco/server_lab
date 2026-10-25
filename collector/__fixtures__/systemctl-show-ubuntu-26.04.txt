@@ -1,0 +1,20 @@
+Id=docker.service
+Description=Docker Application Container Engine
+ActiveState=active
+ActiveEnterTimestamp=@1792915260
+MainPID=3379
+ControlGroup=/system.slice/docker.service
+
+Id=postgresql@18-main.service
+Description=PostgreSQL Cluster 18-main
+ActiveState=active
+ActiveEnterTimestamp=@1792915255
+MainPID=2049
+ControlGroup=/system.slice/system-postgresql.slice/postgresql@18-main.service
+
+Id=tailscaled.service
+Description=Tailscale node agent
+ActiveState=active
+ActiveEnterTimestamp=@1792915254
+MainPID=2001
+ControlGroup=/system.slice/tailscaled.service

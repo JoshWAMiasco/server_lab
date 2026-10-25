@@ -86,7 +86,8 @@ export class AppUsageSource {
 
   private async readSystemd(item: DiscoveredItem, timestamp: number): Promise<AppUsageReading | null> {
     if (!item.unit) return null;
-    const cgroupUsage = await readCgroupUsage(`${CGROUP_ROOT}/system.slice/${item.unit}`);
+    const controlGroup = typeof item.extra.controlGroup === "string" && !item.extra.controlGroup.includes("..") ? item.extra.controlGroup : `/system.slice/${item.unit}`;
+    const cgroupUsage = await readCgroupUsage(`${CGROUP_ROOT}${controlGroup}`);
     if (!cgroupUsage) return null;
     return { appKey: item.key, source: "systemd", cpuPercent: this.computeCpuPercent(item.key, cgroupUsage.usageMicroseconds, timestamp), memoryBytes: cgroupUsage.memoryBytes, memoryLimitBytes: cgroupUsage.memoryLimitBytes };
   }
