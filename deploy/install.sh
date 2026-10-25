@@ -28,6 +28,8 @@ readonly UNIT_DIR=/etc/systemd/system
 readonly COLLECTOR_DROP_IN_DIR=$UNIT_DIR/serverlab-collector.service.d
 readonly CLI_PATH=/usr/local/sbin/serverlab
 readonly SETUP_MARKER=$DATA_DIR/.setup-complete
+readonly GPU_MODE_UNIT=serverlab-gpu-mode@.service
+readonly GPU_MODE_POLKIT_RULE=/etc/polkit-1/rules.d/60-serverlab-gpu-mode.rules
 readonly MINIMUM_NODE_MAJOR=22
 readonly WEB_URL=http://127.0.0.1:3000
 readonly COLLECTOR_GROUP_CANDIDATES=(docker systemd-journal adm utmp video render)
@@ -334,7 +336,20 @@ install_units() {
     warn "no docker group: container discovery is off until Docker is installed and install.sh re-run"
   fi
 
+  install_gpu_mode_switch
   systemctl daemon-reload
+}
+
+# Settings > NVIDIA GPU power: only on hybrid-graphics hosts with prime-select. The polkit rule
+# lets the collector start the two serverlab-gpu-mode@ units and nothing else (HARDENING.md §6).
+install_gpu_mode_switch() {
+  if [[ -x /usr/bin/prime-select && -d /etc/polkit-1/rules.d ]]; then
+    log "installing the NVIDIA GPU power switch ($GPU_MODE_UNIT + polkit rule)"
+    install -m 644 -o root -g root "$INSTALL_DIR/deploy/$GPU_MODE_UNIT" "$UNIT_DIR/$GPU_MODE_UNIT"
+    install -m 644 -o root -g root "$INSTALL_DIR/deploy/polkit/60-serverlab-gpu-mode.rules" "$GPU_MODE_POLKIT_RULE"
+  else
+    rm -f "$UNIT_DIR/$GPU_MODE_UNIT" "$GPU_MODE_POLKIT_RULE"
+  fi
 }
 
 run_migrations() {
@@ -516,6 +531,7 @@ uninstall_serverlab() {
     rm -f "$UNIT_DIR/$unit"
   done
   rm -rf "$COLLECTOR_DROP_IN_DIR"
+  rm -f "$UNIT_DIR/$GPU_MODE_UNIT" "$GPU_MODE_POLKIT_RULE"
   rm -f "$CLI_PATH"
   systemctl daemon-reload
   systemctl reset-failed --quiet 2>/dev/null || true

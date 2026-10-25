@@ -1,0 +1,16 @@
+# Runs prime-select for one NVIDIA PRIME profile: %i is "intel" (NVIDIA GPU off) or "on-demand".
+# serverlab-collector starts it when the admin switches the GPU in Settings. The polkit rule
+# deploy/polkit/60-serverlab-gpu-mode.rules lets the serverlab user start exactly
+# serverlab-gpu-mode@intel.service and serverlab-gpu-mode@on-demand.service, nothing else.
+# Installed by install.sh only on hosts with prime-select (nvidia-prime). Applies after a reboot.
+
+[Unit]
+Description=ServerLab: select the %i NVIDIA PRIME profile (applies after reboot)
+ConditionPathExists=/usr/bin/prime-select
+
+[Service]
+Type=oneshot
+# Refuse any other profile, even if the unit is started some other way.
+ExecCondition=/bin/sh -c 'case "$$1" in intel|on-demand) exit 0 ;; esac; exit 1' serverlab-gpu-mode %i
+ExecStart=/usr/bin/prime-select %i
+TimeoutStartSec=5min

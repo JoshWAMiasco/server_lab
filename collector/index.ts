@@ -2,6 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { CollectorDriver } from "@/collector/driver";
 import { AlertEngine, seedDefaultAlertRules } from "@/collector/alerts/alert-engine";
 import { writeDiscoveredItems } from "@/collector/discovery/discovery-writer";
+import { createGpuPowerJob } from "@/collector/jobs/gpu-power-job";
 import { runManualHealthChecks } from "@/collector/jobs/manual-health-job";
 import { runRetention } from "@/collector/jobs/retention-job";
 import { runFullRollups, runRollups } from "@/collector/jobs/rollup-job";
@@ -132,6 +133,7 @@ async function main() {
     runEvery("retention", 60 * 60_000, () => runRetention(database)),
     runEvery("tls certificate", 60 * 60_000, () => alertEngine.checkTlsCertificate()),
     runEvery("notification tests", 3000, () => alertEngine.processTestRequest()),
+    runEvery("gpu power", 3000, createGpuPowerJob(database, driver)),
   ];
 
   const backfillState = readSetting<{ state: "running" | "done"; count: number } | null>(database, BACKFILL_STATE_KEY, null);

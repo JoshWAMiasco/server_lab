@@ -30,7 +30,7 @@ It is meant to look good and need no setup. It is not a general observability pl
 - Monitoring more than one server (the design leaves room for it; see [01](01-architecture.md#future-multi-host)).
 - Multiple users, roles, SSO.
 - A query language, user-built dashboards, plugins.
-- Starting, stopping or restarting containers and services (read-only monitoring).
+- Starting, stopping or restarting containers and services (read-only monitoring). The NVIDIA GPU power switch is the one, narrow exception (see the decision log).
 - Windows or macOS hosts. Production is Linux only. macOS is used only for development, with the mock driver.
 - Docker Compose deployment.
 
@@ -66,6 +66,7 @@ It is meant to look good and need no setup. It is not a general observability pl
 | 2026-10-25 | Settings "Send test" is queued in SQLite and sent by the collector | The web unit has `IPAddressDeny=any`, so it cannot reach ntfy/Discord/Telegram |
 | 2026-10-25 | One-shot alerts (brute force, new country) stay "firing" until acknowledged; acknowledging resolves them | They have no "back to normal" state |
 | 2026-10-25 | Unmatched systemd units with no listener are stored but hidden behind "Show system services" | Keeps the Lobby to things you host while still making everything discoverable |
+| 2026-10-25 | **Exception to read-only:** Settings → "NVIDIA GPU power" switches `prime-select` between `intel` (GPU off) and `on-demand`. The web only writes a request; the collector starts `serverlab-gpu-mode@intel.service` or `@on-demand.service`, the only units a polkit rule lets `serverlab` start. Applies after a reboot; ServerLab never reboots the host | Requested for a laptop used as a headless server: its Maxwell GPU cannot power down by itself (no runtime D3), so it draws power 24/7 unless the PRIME profile turns it off |
 
 ## Glossary
 - **Sample**: one reading of host metrics, taken every 2 s.

@@ -1,0 +1,9 @@
+// Lets ServerLab's collector (user serverlab) start exactly two systemd units, which run
+// `prime-select intel` or `prime-select on-demand` as root (deploy/serverlab-gpu-mode@.service).
+// No other unit, and no stop/restart. Installed by deploy/install.sh on hosts with nvidia-prime.
+polkit.addRule(function (action, subject) {
+  if (action.id !== "org.freedesktop.systemd1.manage-units" || subject.user !== "serverlab") return polkit.Result.NOT_HANDLED;
+  var unit = action.lookup("unit");
+  if (action.lookup("verb") === "start" && (unit === "serverlab-gpu-mode@intel.service" || unit === "serverlab-gpu-mode@on-demand.service")) return polkit.Result.YES;
+  return polkit.Result.NOT_HANDLED;
+});

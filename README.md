@@ -19,7 +19,7 @@ It answers four questions quickly:
 | Alerts | Threshold and event rules (high CPU, disk almost full, SSH brute force, new country login, service down, exposed service, certificate expiring), sent to ntfy, Discord, Telegram or in-app |
 | Admin login | One local admin (argon2id), session cookies, login throttling |
 
-Monitoring is read-only: ServerLab never starts, stops or changes containers and services.
+Monitoring is read-only: ServerLab never starts, stops or changes containers and services. The one exception is opt-in hardware control on hybrid-graphics laptops: Settings can switch the NVIDIA GPU off or back on (`prime-select`, applied at the next reboot) through two fixed root units allowed by a polkit rule. See [HARDENING §6](docs/HARDENING.md#nvidia-gpu-power-switch-hybrid-graphics-laptops).
 
 ## Tech stack
 Next.js 16 (App Router) · React 19 · Tailwind CSS 4 · SQLite (better-sqlite3 + Drizzle, WAL) · Chart.js · a separate Node collector process · Server-Sent Events for live data.

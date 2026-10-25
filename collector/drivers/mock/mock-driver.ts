@@ -3,6 +3,7 @@ import type { CollectorDriver, DriverCapabilities, LoginWatchHandle } from "@/co
 import { MOCK_APPLICATIONS, MOCK_ATTACKER_ADDRESSES, MOCK_NGINX_SITES, MOCK_TAILNET_DEVICES, MOCK_USERNAMES } from "@/collector/drivers/mock/mock-fixtures";
 import { RandomWalk } from "@/collector/drivers/mock/random-walk";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ParsedLoginEvent, SystemSample } from "@/collector/types";
+import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import type { GeolocationResult } from "@/lib/watcher/geolocation";
 
 const GIBIBYTE = 1024 ** 3;
@@ -43,6 +44,7 @@ export class MockDriver implements CollectorDriver {
   private readonly receiveWalk = new RandomWalk(4_000_000, 1_500_000, 20_000, 120_000_000);
   private readonly transmitWalk = new RandomWalk(900_000, 400_000, 10_000, 60_000_000);
   private readonly tailscaleWalk = new RandomWalk(150_000, 80_000, 0, 20_000_000);
+  private gpuPowerMode: GpuPowerMode = "on-demand";
   private readonly diskReadWalk = new RandomWalk(2_000_000, 1_500_000, 0, 400_000_000);
   private readonly diskWriteWalk = new RandomWalk(1_200_000, 900_000, 0, 300_000_000);
   private readonly appWalks = new Map(MOCK_APPLICATIONS.map((application) => [application.item.key, { memory: new RandomWalk(application.memoryCenterBytes, application.memoryCenterBytes * 0.02, application.memoryCenterBytes * 0.6, application.memoryCenterBytes * 1.4), cpu: new RandomWalk(application.cpuCenterPercent, application.cpuCenterPercent * 0.4 + 0.1, 0, 100) }]));
@@ -178,5 +180,15 @@ export class MockDriver implements CollectorDriver {
 
   overrideGeolocation(ipAddress: string): GeolocationResult | null {
     return MOCK_LOCATIONS[ipAddress] ?? null;
+  }
+
+  /** The fake NVIDIA GPU stays on (a mock never reboots), so a switch to "off" shows as pending. */
+  async readGpuPowerState(): Promise<GpuPowerState> {
+    return { isSupported: true, configuredMode: this.gpuPowerMode, isPoweredOn: true, isRebootPending: this.gpuPowerMode === "off" };
+  }
+
+  async switchGpuPowerMode(mode: GpuPowerMode): Promise<string | null> {
+    this.gpuPowerMode = mode;
+    return null;
   }
 }

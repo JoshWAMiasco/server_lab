@@ -1,11 +1,11 @@
 "use client";
 
-import { KeyRound, LogOut, Send, ShieldAlert } from "lucide-react";
+import { KeyRound, LogOut, Power, PowerOff, Send, ShieldAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { requestTestNotification } from "@/app/actions/alert-rule-actions";
 import { changePassword, revokeSession, type ActionResult } from "@/app/actions/authentication-actions";
-import { purgeLoginHistory, savePublicHostname, saveRetention } from "@/app/actions/settings-actions";
+import { purgeLoginHistory, requestGpuPowerMode, savePublicHostname, saveRetention } from "@/app/actions/settings-actions";
 import { showToastNotification } from "@/components/interactive/toast-notification";
 import { Badge } from "@/components/primitives/badge";
 import { Button } from "@/components/primitives/button";
@@ -195,6 +195,41 @@ function ChannelsSection({ configuredChannels, lastTestResult }: { configuredCha
   );
 }
 
+function GpuPowerSection({ gpuPower, lastResult }: { gpuPower: NonNullable<SettingsOverview["gpuPower"]>; lastResult: SettingsOverview["lastGpuPowerResult"] }) {
+  const router = useRouter();
+  const { errorMessage, isPending, run } = useActionRunner();
+  const isSwitchedOff = gpuPower.configuredMode === "off";
+  const refreshWhileSwitching = () => [5000, 20_000, 60_000].forEach((delay) => window.setTimeout(() => router.refresh(), delay));
+  return (
+    <SettingsSection
+      title="NVIDIA GPU power"
+      description="Off runs the desktop on the Intel GPU and powers the NVIDIA GPU down, which saves several watts on a host that does not need it. Switching runs prime-select through a root unit and applies after a reboot."
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Badge tone={gpuPower.isPoweredOn ? "success" : "slate"}>{gpuPower.isPoweredOn ? "on now" : "off now"}</Badge>
+        <span className="text-foreground-muted">next boot: {isSwitchedOff ? "off" : gpuPower.configuredMode}</span>
+        {gpuPower.isRebootPending && <Badge tone="warning">reboot to apply</Badge>}
+        <Button
+          size="small"
+          variant={isSwitchedOff ? "outline-secondary" : "danger"}
+          className="sm:ml-auto"
+          disabled={isPending}
+          onClick={() => run(() => requestGpuPowerMode(isSwitchedOff ? "on-demand" : "off"), refreshWhileSwitching)}
+          leadingIcon={isSwitchedOff ? <Power className="mr-1.5 h-3.5 w-3.5" /> : <PowerOff className="mr-1.5 h-3.5 w-3.5" />}
+        >
+          {isSwitchedOff ? "Turn on (on-demand)" : "Turn off"}
+        </Button>
+      </div>
+      <FormErrorMessage message={errorMessage} />
+      {lastResult && (
+        <div className={`mt-4 text-xs ${lastResult.isSuccessful ? "text-success" : "text-danger"}`}>
+          Last switch to {lastResult.mode} ({formatRelativeTime(new Date(lastResult.finishedAt).toISOString())}): {lastResult.isSuccessful ? "done, reboot to apply" : `failed: ${lastResult.errorMessage}`}
+        </div>
+      )}
+    </SettingsSection>
+  );
+}
+
 function describeCapability(value: unknown): string {
   if (typeof value === "boolean") return value ? "yes" : "no";
   if (Array.isArray(value)) return value.length === 0 ? "none" : value.map((item) => (typeof item === "object" && item && "name" in item ? `${String((item as { name: string }).name)}${"statsAvailable" in item && !(item as { statsAvailable: boolean }).statsAvailable ? " (no stats)" : ""}` : String(item))).join(", ");
@@ -245,7 +280,8 @@ function DangerSection() {
 
 /**
  * All Settings sections: password, sessions, link host name, retention, notification channels,
- * detected system capabilities and the login-history purge.
+ * NVIDIA GPU power (hybrid-graphics hosts only), detected system capabilities and the
+ * login-history purge.
  *
  * @example
  * <SettingsPanels overview={readSettingsOverview(database)} currentIdHash={session.idHash} />
@@ -258,6 +294,7 @@ export function SettingsPanels({ overview, currentIdHash }: { overview: Settings
       <HostnameSection override={overview.publicHostnameOverride} detected={overview.detectedHostname} />
       <ChannelsSection configuredChannels={overview.configuredChannels} lastTestResult={overview.lastTestResult} />
       <RetentionSection retention={overview.retention} />
+      {overview.gpuPower?.isSupported && <GpuPowerSection gpuPower={overview.gpuPower} lastResult={overview.lastGpuPowerResult} />}
       <SystemSection overview={overview} />
       <DangerSection />
     </div>

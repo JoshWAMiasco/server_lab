@@ -286,6 +286,20 @@ sudo systemctl daemon-reload && sudo systemctl restart serverlab-collector
 - **Dependencies are pinned.** `npm ci` uses the lockfile and `install.sh` runs `npm audit`. A compromised npm package is the realistic attack path.
 - **Upgrade path:** [docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) with `CONTAINERS=1 INFO=1` and everything else `0`. Then set `DOCKER_HOST=tcp://127.0.0.1:2375` in the env file and remove `docker` from `groups.conf`. No code changes.
 
+### NVIDIA GPU power switch (hybrid-graphics laptops)
+On hosts with `prime-select` (package `nvidia-prime`), `install.sh` adds Settings → **NVIDIA GPU power**. "Turn off" selects the PRIME `intel` profile: after the next reboot the desktop runs on the Intel GPU and the NVIDIA GPU is powered down. Older NVIDIA GPUs (before Turing) cannot power down by themselves, so this is the only way to stop them drawing power. "Turn on" selects `on-demand` again.
+
+This is the one place where ServerLab changes the host, so it is kept narrow:
+
+| Piece | What it may do |
+|---|---|
+| Web process | Writes a request into the database. No privileges, as before |
+| Collector | Starts `serverlab-gpu-mode@intel.service` or `serverlab-gpu-mode@on-demand.service`, and nothing else |
+| `/etc/polkit-1/rules.d/60-serverlab-gpu-mode.rules` | Grants user `serverlab` the `start` verb on exactly those two units. No other unit, no stop or restart, no reboot |
+| `/etc/systemd/system/serverlab-gpu-mode@.service` | Runs `prime-select %i` as root. Its `ExecCondition` refuses any profile other than `intel` and `on-demand` |
+
+ServerLab never reboots the host: reboot yourself to apply the change. Settings shows "reboot to apply" until you do. To remove the feature, delete both files above and run `sudo systemctl daemon-reload`; `install.sh --uninstall` removes them too.
+
 ### Intel GPU stats (optional)
 `intel_gpu_top` needs `CAP_PERFMON`. Without it, the Resources page shows "Intel iGPU detected, no stats". To turn stats on:
 ```bash

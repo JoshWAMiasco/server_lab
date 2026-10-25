@@ -1,3 +1,4 @@
+import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import type { GeolocationResult } from "@/lib/watcher/geolocation";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, GpuDevice, ParsedLoginEvent, SystemSample } from "@/collector/types";
 
@@ -40,6 +41,10 @@ export interface CollectorDriver {
   readHostname(): string;
   /** Problems met while reading sources (unparseable nginx files…), shown in Settings. */
   readWarnings?(): string[];
+  /** Hybrid-graphics hosts: the NVIDIA GPU's PRIME mode and whether a reboot is pending. */
+  readGpuPowerState?(): Promise<GpuPowerState>;
+  /** Switches the NVIDIA GPU's PRIME mode (applies after a reboot). Returns an error message, or null. */
+  switchGpuPowerMode?(mode: GpuPowerMode): Promise<string | null>;
   /** Mock only: a fake location for an IP, since development machines have no GeoIP database. */
   overrideGeolocation?(ipAddress: string): GeolocationResult | null;
 }

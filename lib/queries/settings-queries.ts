@@ -6,6 +6,7 @@ import { resolveDatabasePath, type ServerLabDatabase } from "@/lib/database/clie
 import { readCapability, readSetting } from "@/lib/database/key-value";
 import { readRetentionSettings, type RetentionSettings } from "@/lib/database/retention";
 import { readEnvironment } from "@/lib/environment";
+import { GPU_POWER_CAPABILITY_KEY, GPU_POWER_RESULT_KEY, type GpuPowerResult, type GpuPowerState } from "@/lib/hardware/gpu-power";
 import { sessions } from "@/lib/schema/authentication";
 import { capabilities } from "@/lib/schema/system";
 import { PUBLIC_HOSTNAME_SETTING_KEY } from "@/lib/queries/lobby-queries";
@@ -17,6 +18,8 @@ export interface SettingsOverview {
   retention: RetentionSettings;
   configuredChannels: Record<"ntfy" | "discord" | "telegram", boolean>;
   lastTestResult: AlertTestResult | null;
+  gpuPower: GpuPowerState | null;
+  lastGpuPowerResult: GpuPowerResult | null;
   capabilities: { key: string; value: unknown; updatedAt: number }[];
   databasePath: string;
   databaseSizeBytes: number;
@@ -45,7 +48,9 @@ export function readSettingsOverview(database: ServerLabDatabase): SettingsOverv
     retention: readRetentionSettings(database),
     configuredChannels: readConfiguredChannels(),
     lastTestResult: readSetting<AlertTestResult | null>(database, ALERT_TEST_RESULT_KEY, null),
-    capabilities: database.select().from(capabilities).all().filter((row) => !["publicHostname", "hostname"].includes(row.key)),
+    gpuPower: readCapability<GpuPowerState | null>(database, GPU_POWER_CAPABILITY_KEY, null),
+    lastGpuPowerResult: readSetting<GpuPowerResult | null>(database, GPU_POWER_RESULT_KEY, null),
+    capabilities: database.select().from(capabilities).all().filter((row) => !["publicHostname", "hostname", GPU_POWER_CAPABILITY_KEY].includes(row.key)),
     databasePath,
     databaseSizeBytes: fileSize(databasePath) + fileSize(`${databasePath}-wal`),
     geolocationDatabasePath,

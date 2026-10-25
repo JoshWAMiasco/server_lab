@@ -5,6 +5,7 @@ import { AppUsageSource } from "@/collector/drivers/linux/app-usage-source";
 import { discoverDockerContainers } from "@/collector/drivers/linux/docker-source";
 import { readFilesystemUsage } from "@/collector/drivers/linux/filesystem-source";
 import { GpuSource } from "@/collector/drivers/linux/gpu-source";
+import { readGpuPowerState, switchGpuPowerMode } from "@/collector/drivers/linux/gpu-power-source";
 import { readHardwareTemperatures } from "@/collector/drivers/linux/hardware-monitor-source";
 import { readListeners, resolveListenerOwner, toPortItems, type ListenerOwner } from "@/collector/drivers/linux/listener-source";
 import { LoginSource } from "@/collector/drivers/linux/login-source";
@@ -17,6 +18,7 @@ import { classifyBindAddress, widestBindScope } from "@/collector/parsers/parse-
 import { isDockerAvailable } from "@/collector/sources/docker-client";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ListeningSocket, ParsedLoginEvent, SystemSample } from "@/collector/types";
 import { matchCatalogEntry } from "@/lib/catalog/catalog";
+import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import { readEnvironment } from "@/lib/environment";
 
 const SERVERLAB_WEB_PORT = 3000;
@@ -133,6 +135,14 @@ export class LinuxDriver implements CollectorDriver {
 
   async readPublicHostname(): Promise<string> {
     return readEnvironment("PUBLIC_HOSTNAME") ?? readMagicDnsName(await readTailscaleStatus()) ?? operatingSystem.hostname();
+  }
+
+  readGpuPowerState(): Promise<GpuPowerState> {
+    return readGpuPowerState();
+  }
+
+  switchGpuPowerMode(mode: GpuPowerMode): Promise<string | null> {
+    return switchGpuPowerMode(mode);
   }
 
   readWarnings(): string[] {
