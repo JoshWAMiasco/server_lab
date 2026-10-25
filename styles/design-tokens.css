@@ -1,0 +1,92 @@
+/*
+ * Red Alert design tokens. Every component and page reads its colours, corner radii, shadows
+ * and fonts from these variables, so restyling the theme means editing this file only.
+ *
+ * Use them as Tailwind classes: `bg-surface`, `text-foreground-muted`, `border-line`,
+ * `text-on-primary`, `rounded-box`, `shadow-box`, `font-display`. Opacity modifiers work
+ * as usual (`bg-primary/20`). In scripts, read them with `readThemeColor("primary")`.
+ */
+@theme static {
+  /* Page and panel surfaces, from the page background up to the strongest filled area. */
+  --color-canvas: #0a0a0b;
+  --color-surface: #141416;
+  --color-surface-subtle: #18181b;
+  --color-surface-muted: #1d1d21;
+  --color-surface-strong: #25252a;
+  --color-surface-heavy: #303036;
+
+  /* Text and icons, strongest to faintest. */
+  --color-foreground-strong: #f5f5f7;
+  --color-foreground: #e2e2e6;
+  --color-foreground-muted: #a6a6b0;
+  --color-foreground-subtle: #8e8e98;
+  --color-foreground-faint: #5d5d66;
+
+  /* Form fields: inputs, selects, text areas, checkboxes. */
+  --color-field: #0e0e10;
+
+  /* Borders and dividers. */
+  --color-line: #2c2c31;
+  --color-line-strong: #3d3d44;
+
+  /* Text drawn on top of coloured fills: `on-primary` over primary, status and brand fills;
+     `on-neutral` over the `dark` fill, photos and dark overlays. */
+  --color-on-primary: #0a0a0b;
+  --color-on-neutral: #f0f0f2;
+
+  /* Brand colours: `brand` leads (links, active menu, highlights), `accent` pairs with it. */
+  --color-brand: #ff4655;
+  --color-accent: #f9d71c;
+
+  /* Component colours used by buttons, badges and alerts. */
+  --color-primary: #ff5f6c;
+  --color-secondary: #2c2c31;
+  --color-success: #2ee59d;
+  --color-info: #4da3ff;
+  --color-warning: #f9d71c;
+  --color-pending: #ff9f1c;
+  --color-danger: #ff7088;
+  --color-light: #25252a;
+  --color-dark: #050506;
+
+  /* Corners: sharp everywhere; only `rounded-full` (avatars, dots) stays round. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+  --radius-box: 0;
+
+  /* Depth: flat graphite panels; a red glow marks primary actions and focus. */
+  --shadow-2xs: 0 1px 0 rgb(0 0 0 / 0.4);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.5);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.55);
+  --shadow-md: 0 6px 14px -4px rgb(0 0 0 / 0.65);
+  --shadow-lg: 0 12px 24px -8px rgb(0 0 0 / 0.7);
+  --shadow-xl: 0 20px 36px -12px rgb(0 0 0 / 0.8);
+  --shadow-2xl: 0 28px 56px -16px rgb(0 0 0 / 0.85);
+  --shadow-box: 0 10px 24px -16px rgb(0 0 0 / 0.95);
+  --shadow-overlay: 0 14px 36px -10px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(255 42 58 / 0.22);
+  --shadow-glow: 0 0 14px rgb(255 42 58 / 0.35);
+  --shadow-glow-accent: 0 0 14px rgb(249 215 28 / 0.3);
+
+  /* Type: Chakra Petch for headings and numbers that should stand out, Roboto Mono for everything else. */
+  --font-display: var(--font-family-display), "Chakra Petch", ui-sans-serif, sans-serif;
+  --font-body: var(--font-family-body), "Roboto Mono", ui-monospace, monospace;
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body);
+}
+
+:root {
+  /* Theme decorations (see styles/theme-decorations.css). */
+  --decoration-dot-color: rgb(255 255 255 / 0.05);
+  --decoration-dot-spacing: 22px;
+  --decoration-alarm-glow: rgb(255 42 58 / 0.1);
+  --decoration-hazard-stripe-color: rgb(249 215 28 / 0.03);
+  --decoration-corner-size: 12px;
+  --decoration-heading-letter-spacing: 0.06em;
+  --decoration-text-glow: 0 0 10px rgb(255 42 58 / 0.4);
+}

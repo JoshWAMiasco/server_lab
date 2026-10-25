@@ -1,0 +1,156 @@
+/*
+ * Red Alert side menu: uppercase console rows in the display face, a red cut-corner plate on the
+ * active link and a yellow section code on each divider. Collapsing the menu (xl screens) hides
+ * titles, badges and chevrons until the menu is hovered.
+ */
+.red-alert .side-menu__divider {
+  margin: 1.25rem 0 0.5rem;
+  padding-left: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-accent);
+}
+
+.red-alert .side-menu__divider::before {
+  content: "// ";
+  color: var(--color-foreground-faint);
+}
+
+.red-alert .side-menu__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+  padding: 0.6rem 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-foreground-muted);
+  transition-property: color, background-color;
+  transition-duration: 150ms;
+}
+
+.red-alert .side-menu__link:hover {
+  background-color: var(--color-surface-muted);
+  color: var(--color-foreground-strong);
+}
+
+.red-alert .side-menu__link:focus-visible {
+  outline-offset: -2px;
+}
+
+.red-alert .side-menu__link__icon {
+  flex: none;
+  stroke: currentColor;
+  fill: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.red-alert .side-menu__link__title {
+  margin-left: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.red-alert .side-menu__link--active,
+.red-alert .side-menu__link--active:hover {
+  background-color: var(--color-brand);
+  color: var(--color-on-primary);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+
+.red-alert .side-menu__link--active-dropdown:not(.side-menu__link--active) {
+  color: var(--color-foreground-strong);
+}
+
+.red-alert .side-menu__link__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.2rem;
+  margin-left: 0.625rem;
+  padding: 0 0.4rem;
+  background-color: var(--color-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-on-primary);
+}
+
+.red-alert .side-menu__link__chevron {
+  flex: none;
+  margin-left: auto;
+}
+
+.red-alert .side-menu ul ul {
+  margin: 2px 0 6px 1.35rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--color-line-strong);
+}
+
+@media (min-width: 1280px) {
+  .red-alert .side-menu--collapsed .side-menu__divider {
+    position: relative;
+    height: 1.25rem;
+    color: transparent;
+  }
+
+  .red-alert .side-menu--collapsed .side-menu__divider::before {
+    content: "—";
+    position: absolute;
+    inset-inline: 0;
+    text-align: center;
+    color: var(--color-foreground-faint);
+  }
+
+  .red-alert .side-menu--collapsed .side-menu__link {
+    overflow: hidden;
+  }
+
+  .red-alert .side-menu--collapsed .side-menu__link--active {
+    clip-path: none;
+  }
+
+  .red-alert .side-menu--collapsed .side-menu__link__title,
+  .red-alert .side-menu--collapsed .side-menu__link__badge,
+  .red-alert .side-menu--collapsed .side-menu__link__chevron {
+    opacity: 0;
+    white-space: nowrap;
+    transition: opacity 300ms;
+  }
+
+  .red-alert .side-menu--collapsed .side-menu ul ul {
+    margin-left: 0;
+    border-left-color: transparent;
+  }
+
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__divider {
+    color: var(--color-accent);
+  }
+
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__divider::before {
+    content: "// ";
+    position: static;
+    color: var(--color-foreground-faint);
+  }
+
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__link--active {
+    clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  }
+
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__link__title,
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__link__badge,
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu__link__chevron {
+    opacity: 1;
+  }
+
+  .red-alert .side-menu--collapsed.side-menu--on-hover .side-menu ul ul {
+    margin-left: 1.35rem;
+    border-left-color: var(--color-line-strong);
+  }
+}

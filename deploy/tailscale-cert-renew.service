@@ -1,0 +1,27 @@
+# Fetches or renews the Tailscale certificate that nginx serves, then reloads nginx.
+# Install to /etc/systemd/system/ and replace MAGICDNS_NAME (e.g. homelab.tail1234.ts.net).
+# `tailscale cert` keeps a cached certificate and only renews it when it nears expiry,
+# so running it often is cheap. Started weekly by tailscale-cert-renew.timer.
+
+[Unit]
+Description=Renew the Tailscale TLS certificate for nginx
+Documentation=https://tailscale.com/kb/1153/enabling-https
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=TS_CERT_DOMAIN=MAGICDNS_NAME
+ExecStart=tailscale cert --cert-file /etc/nginx/tls/ts.crt --key-file /etc/nginx/tls/ts.key ${TS_CERT_DOMAIN}
+# The certificate is public (ServerLab reads its expiry date); the key stays root-only.
+ExecStartPost=chmod 644 /etc/nginx/tls/ts.crt
+ExecStartPost=chmod 600 /etc/nginx/tls/ts.key
+# Reload only if nginx is running and the config is valid.
+ExecStartPost=nginx -t -q
+ExecStartPost=systemctl try-reload-or-restart nginx.service
+
+NoNewPrivileges=yes
+ProtectSystem=full
+ReadWritePaths=/etc/nginx/tls
+ProtectHome=yes
+PrivateTmp=yes

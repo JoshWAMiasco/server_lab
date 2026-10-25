@@ -1,0 +1,79 @@
+/*
+ * Red Alert decorations: a dotted console backdrop with an alarm-red glow, hazard stripes behind
+ * showcase areas, red HUD brackets on the corner of every card and uppercase display headings.
+ * Values come from the decoration variables in styles/design-tokens.css.
+ */
+@utility decoration-grid-backdrop {
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--color-canvas);
+    background-image:
+      radial-gradient(ellipse at 0% 0%, var(--decoration-alarm-glow), transparent 45%),
+      radial-gradient(var(--decoration-dot-color) 1px, transparent 1px);
+    background-size: auto, var(--decoration-dot-spacing) var(--decoration-dot-spacing);
+  }
+}
+
+@utility decoration-hero-backdrop {
+  background-color: var(--color-canvas);
+  background-image:
+    radial-gradient(ellipse at 80% 20%, rgb(255 42 58 / 0.18), transparent 50%),
+    repeating-linear-gradient(-45deg, var(--decoration-hazard-stripe-color) 0 14px, transparent 14px 28px),
+    radial-gradient(var(--decoration-dot-color) 1px, transparent 1px);
+  background-size: auto, auto, var(--decoration-dot-spacing) var(--decoration-dot-spacing);
+}
+
+@utility decoration-text-glow {
+  text-shadow: var(--decoration-text-glow);
+}
+
+@layer base {
+  .font-display,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: var(--decoration-heading-letter-spacing);
+    text-transform: uppercase;
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+@layer components {
+  .red-alert .box:not(.rounded-full, [class*="after:"])::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: var(--decoration-corner-size);
+    height: var(--decoration-corner-size);
+    border-top: 2px solid var(--color-brand);
+    border-right: 2px solid var(--color-brand);
+    pointer-events: none;
+  }
+
+  .red-alert .bg-primary.border-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .red-alert .leaflet-container {
+    background-color: var(--color-surface-muted);
+  }
+
+  .red-alert .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.8) contrast(0.95) saturate(0.25);
+  }
+}

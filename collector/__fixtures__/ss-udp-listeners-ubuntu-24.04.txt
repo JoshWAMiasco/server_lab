@@ -1,0 +1,7 @@
+UNCONN 0      0                     127.0.0.53%lo:53         0.0.0.0:*    users:(("systemd-resolve",pid=812,fd=14))
+UNCONN 0      0                        127.0.0.54:53         0.0.0.0:*    users:(("systemd-resolve",pid=812,fd=16))
+UNCONN 0      0                           0.0.0.0:41641      0.0.0.0:*    users:(("tailscaled",pid=900,fd=12))
+UNCONN 0      0                           0.0.0.0:5353       0.0.0.0:*    users:(("avahi-daemon",pid=780,fd=12))
+UNCONN 0      0                              [::]:41641         [::]:*    users:(("tailscaled",pid=900,fd=13))
+UNCONN 0      0       [fe80::a00:27ff:fe4e:66a1]%enp3s0:546     [::]:*    users:(("systemd-network",pid=700,fd=22))
+UNCONN 0      0                                 *:7359             *:*    users:(("jellyfin",pid=1600,fd=300))

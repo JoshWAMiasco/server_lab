@@ -1,0 +1,61 @@
+# ServerLab web UI (Next.js). Installed by deploy/install.sh to /etc/systemd/system/.
+# Listens on 127.0.0.1:3000 only. nginx on the Tailscale IP is the only way in (docs/HARDENING.md).
+# The web process needs no host access: no extra groups, no outbound network.
+
+[Unit]
+Description=ServerLab web UI
+Documentation=file:/opt/serverlab/docs/HARDENING.md
+After=network-online.target serverlab-collector.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=serverlab
+Group=serverlab
+WorkingDirectory=/opt/serverlab
+EnvironmentFile=/etc/serverlab/serverlab.env
+Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/bin/env node /opt/serverlab/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3000
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+UMask=0077
+
+# Writable paths: the data directory, and /var/cache/serverlab (install.sh links .next/cache there).
+ReadWritePaths=/var/lib/serverlab
+CacheDirectory=serverlab
+CacheDirectoryMode=0700
+
+# Sandbox
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectProc=invisible
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+LockPersonality=yes
+# V8's JIT needs writable and executable memory.
+MemoryDenyWriteExecute=no
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=
+AmbientCapabilities=
+# AF_NETLINK: Node's os.networkInterfaces() uses it; without it Next can crash at startup.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+# Loopback only: nginx connects in from 127.0.0.1, and the web process never calls out.
+IPAddressAllow=localhost
+IPAddressDeny=any
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+# Refreshes the DB-IP City Lite database used for login geolocation.
+# Started monthly by serverlab-geoip-update.timer. Installed by deploy/install.sh.
+
+[Unit]
+Description=ServerLab: update the DB-IP City Lite geolocation database
+Documentation=https://db-ip.com/db/download/ip-to-city-lite
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=serverlab
+Group=serverlab
+EnvironmentFile=/etc/serverlab/serverlab.env
+ExecStart=/opt/serverlab/deploy/geoip-update.sh
+# The collector opens the database once, so restart it to load the new file ("+" = run as root).
+ExecStartPost=+systemctl try-restart serverlab-collector.service
+UMask=0077
+
+ReadWritePaths=/var/lib/serverlab
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

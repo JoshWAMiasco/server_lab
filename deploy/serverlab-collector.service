@@ -1,0 +1,62 @@
+# ServerLab metrics collector. Installed by deploy/install.sh to /etc/systemd/system/.
+# Reads the host (/proc, /sys, docker.sock with GET only, the journal, ss, wtmp/btmp, GPU tools)
+# and writes to SQLite. It has no network listener. It calls out only to send notifications.
+#
+# Extra groups are NOT set here, because a group that does not exist on the host makes the unit
+# fail to start. install.sh writes the drop-in
+#   /etc/systemd/system/serverlab-collector.service.d/groups.conf
+# with whichever of these exist: docker systemd-journal adm utmp video render.
+# Optional Intel GPU stats: see "Intel GPU stats" in docs/HARDENING.md (perfmon.conf drop-in).
+
+[Unit]
+Description=ServerLab metrics collector
+Documentation=file:/opt/serverlab/docs/HARDENING.md
+After=network-online.target systemd-journald.service docker.service tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=serverlab
+Group=serverlab
+WorkingDirectory=/opt/serverlab
+EnvironmentFile=/etc/serverlab/serverlab.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/env node /opt/serverlab/dist/collector/index.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+UMask=0077
+
+ReadWritePaths=/var/lib/serverlab
+
+# Sandbox. Everything outside /var/lib/serverlab is read-only, including /var/log/btmp and
+# /run/utmp, so membership in the utmp group gives read access only.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+# Read-only cgroup access is all the collector needs for per-service memory and CPU.
+ProtectControlGroups=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+LockPersonality=yes
+# V8's JIT needs writable and executable memory.
+MemoryDenyWriteExecute=no
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+# AF_NETLINK: `ss` reads sockets through netlink (sock_diag).
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+# Deliberately not set:
+#  - PrivateDevices / ProtectClock / DevicePolicy: they hide /dev/nvidia* and /dev/dri (GPU stats).
+#  - SystemCallFilter: child tools (nvidia-smi, intel_gpu_top) need calls outside @system-service.
+#  - IPAddressDeny: notifications go out to ntfy, Discord and Telegram.
+
+[Install]
+WantedBy=multi-user.target

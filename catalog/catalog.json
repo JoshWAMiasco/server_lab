@@ -1,0 +1,1323 @@
+[
+  {
+    "id": "jellyfin",
+    "name": "Jellyfin",
+    "description": "Self-hosted media server for movies, TV and music.",
+    "category": "app",
+    "icon": "jellyfin.svg",
+    "match": {
+      "image": ["jellyfin/jellyfin", "linuxserver/jellyfin", "hotio/jellyfin"],
+      "unit": ["jellyfin"],
+      "process": ["jellyfin"]
+    },
+    "defaultPort": 8096,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "plex",
+    "name": "Plex",
+    "description": "Media server that streams your movies, TV and music to any device.",
+    "category": "app",
+    "icon": "plex.svg",
+    "match": {
+      "image": ["plexinc/pms-docker", "linuxserver/plex", "hotio/plex"],
+      "unit": ["plexmediaserver"],
+      "process": ["Plex Media Serv"]
+    },
+    "defaultPort": 32400,
+    "urlPath": "/web",
+    "isHttps": false
+  },
+  {
+    "id": "emby",
+    "name": "Emby",
+    "description": "Personal media server for organizing and streaming video and music.",
+    "category": "app",
+    "icon": "emby.svg",
+    "match": {
+      "image": ["emby/embyserver", "linuxserver/emby"],
+      "unit": ["emby-server"],
+      "process": ["EmbyServer"]
+    },
+    "defaultPort": 8096,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "sonarr",
+    "name": "Sonarr",
+    "description": "Monitors and downloads TV series automatically.",
+    "category": "app",
+    "icon": "sonarr.svg",
+    "match": {
+      "image": ["linuxserver/sonarr", "hotio/sonarr"],
+      "unit": ["sonarr"],
+      "process": ["Sonarr"]
+    },
+    "defaultPort": 8989,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "radarr",
+    "name": "Radarr",
+    "description": "Monitors and downloads movies automatically.",
+    "category": "app",
+    "icon": "radarr.svg",
+    "match": {
+      "image": ["linuxserver/radarr", "hotio/radarr"],
+      "unit": ["radarr"],
+      "process": ["Radarr"]
+    },
+    "defaultPort": 7878,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "lidarr",
+    "name": "Lidarr",
+    "description": "Monitors and downloads music albums automatically.",
+    "category": "app",
+    "icon": "lidarr.svg",
+    "match": {
+      "image": ["linuxserver/lidarr", "hotio/lidarr"],
+      "unit": ["lidarr"],
+      "process": ["Lidarr"]
+    },
+    "defaultPort": 8686,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "readarr",
+    "name": "Readarr",
+    "description": "Monitors and downloads ebooks and audiobooks automatically.",
+    "category": "app",
+    "icon": "readarr.svg",
+    "match": {
+      "image": ["linuxserver/readarr", "hotio/readarr"],
+      "unit": ["readarr"],
+      "process": ["Readarr"]
+    },
+    "defaultPort": 8787,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "prowlarr",
+    "name": "Prowlarr",
+    "description": "Indexer manager that feeds search results to the *arr apps.",
+    "category": "app",
+    "icon": "prowlarr.svg",
+    "match": {
+      "image": ["linuxserver/prowlarr", "hotio/prowlarr"],
+      "unit": ["prowlarr"],
+      "process": ["Prowlarr"]
+    },
+    "defaultPort": 9696,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "bazarr",
+    "name": "Bazarr",
+    "description": "Finds and downloads subtitles for your movies and shows.",
+    "category": "app",
+    "icon": "bazarr.svg",
+    "match": {
+      "image": ["linuxserver/bazarr", "hotio/bazarr"],
+      "unit": ["bazarr"],
+      "process": []
+    },
+    "defaultPort": 6767,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "jellyseerr",
+    "name": "Jellyseerr",
+    "description": "Request manager for Jellyfin, Emby and Plex libraries.",
+    "category": "app",
+    "icon": "jellyseerr.svg",
+    "match": {
+      "image": ["fallenbagel/jellyseerr", "hotio/jellyseerr", "seerr-team/seerr"],
+      "unit": ["jellyseerr"],
+      "process": []
+    },
+    "defaultPort": 5055,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "overseerr",
+    "name": "Overseerr",
+    "description": "Request manager and discovery tool for Plex libraries.",
+    "category": "app",
+    "icon": "overseerr.svg",
+    "match": {
+      "image": ["sctx/overseerr", "linuxserver/overseerr", "hotio/overseerr"],
+      "unit": ["overseerr"],
+      "process": []
+    },
+    "defaultPort": 5055,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "qbittorrent",
+    "name": "qBittorrent",
+    "description": "BitTorrent client with a web interface.",
+    "category": "app",
+    "icon": "qbittorrent.svg",
+    "match": {
+      "image": ["linuxserver/qbittorrent", "hotio/qbittorrent", "qbittorrentofficial/qbittorrent-nox"],
+      "unit": ["qbittorrent-nox"],
+      "process": ["qbittorrent-nox"]
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "transmission",
+    "name": "Transmission",
+    "description": "Lightweight BitTorrent client with a web interface.",
+    "category": "app",
+    "icon": "transmission.svg",
+    "match": {
+      "image": ["linuxserver/transmission", "haugene/transmission-openvpn"],
+      "unit": ["transmission-daemon"],
+      "process": ["transmission-da"]
+    },
+    "defaultPort": 9091,
+    "urlPath": "/transmission/web/",
+    "isHttps": false
+  },
+  {
+    "id": "sabnzbd",
+    "name": "SABnzbd",
+    "description": "Usenet binary newsreader and downloader.",
+    "category": "app",
+    "icon": "sabnzbd.svg",
+    "match": {
+      "image": ["linuxserver/sabnzbd", "hotio/sabnzbd", "sabnzbd/sabnzbd"],
+      "unit": ["sabnzbdplus", "sabnzbd"],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "home-assistant",
+    "name": "Home Assistant",
+    "description": "Home automation hub for smart devices.",
+    "category": "app",
+    "icon": "home-assistant.svg",
+    "match": {
+      "image": ["home-assistant/home-assistant", "homeassistant/home-assistant", "linuxserver/homeassistant"],
+      "unit": ["home-assistant", "homeassistant"],
+      "process": []
+    },
+    "defaultPort": 8123,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "node-red",
+    "name": "Node-RED",
+    "description": "Flow-based programming tool for wiring devices and APIs.",
+    "category": "app",
+    "icon": "node-red.svg",
+    "match": {
+      "image": ["nodered/node-red"],
+      "unit": ["nodered", "node-red"],
+      "process": ["node-red"]
+    },
+    "defaultPort": 1880,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "mosquitto",
+    "name": "Mosquitto",
+    "description": "MQTT message broker for IoT devices.",
+    "category": "infra",
+    "icon": "mosquitto.svg",
+    "match": {
+      "image": ["eclipse-mosquitto"],
+      "unit": ["mosquitto"],
+      "process": ["mosquitto"]
+    },
+    "defaultPort": 1883,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "zigbee2mqtt",
+    "name": "Zigbee2MQTT",
+    "description": "Bridges Zigbee devices to MQTT without vendor hubs.",
+    "category": "app",
+    "icon": "zigbee2mqtt.svg",
+    "match": {
+      "image": ["koenkk/zigbee2mqtt"],
+      "unit": ["zigbee2mqtt"],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "pi-hole",
+    "name": "Pi-hole",
+    "description": "Network-wide DNS ad blocker.",
+    "category": "infra",
+    "icon": "pi-hole.svg",
+    "match": {
+      "image": ["pihole/pihole"],
+      "unit": ["pihole-FTL"],
+      "process": ["pihole-FTL"]
+    },
+    "defaultPort": 80,
+    "urlPath": "/admin/",
+    "isHttps": false
+  },
+  {
+    "id": "adguard-home",
+    "name": "AdGuard Home",
+    "description": "Network-wide DNS ad and tracker blocker.",
+    "category": "infra",
+    "icon": "adguard-home.svg",
+    "match": {
+      "image": ["adguard/adguardhome"],
+      "unit": ["AdGuardHome"],
+      "process": ["AdGuardHome"]
+    },
+    "defaultPort": 3000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "nextcloud",
+    "name": "Nextcloud",
+    "description": "Self-hosted file sync, calendar and collaboration suite.",
+    "category": "app",
+    "icon": "nextcloud.svg",
+    "match": {
+      "image": ["nextcloud", "linuxserver/nextcloud", "nextcloud/all-in-one"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "immich-server",
+    "name": "Immich",
+    "description": "Self-hosted photo and video backup with mobile apps.",
+    "category": "app",
+    "icon": "immich-server.svg",
+    "match": {
+      "image": ["immich-app/immich-server", "altran1502/immich-server"],
+      "unit": ["immich", "immich-server"],
+      "process": ["immich"]
+    },
+    "defaultPort": 2283,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "immich-machine-learning",
+    "name": "Immich Machine Learning",
+    "description": "Face recognition and smart search worker for Immich.",
+    "category": "infra",
+    "icon": "immich-machine-learning.svg",
+    "match": {
+      "image": ["immich-app/immich-machine-learning", "altran1502/immich-machine-learning"],
+      "unit": ["immich-machine-learning"],
+      "process": []
+    },
+    "defaultPort": 3003,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "photoprism",
+    "name": "PhotoPrism",
+    "description": "AI-powered photo library browser and organizer.",
+    "category": "app",
+    "icon": "photoprism.svg",
+    "match": {
+      "image": ["photoprism/photoprism"],
+      "unit": ["photoprism"],
+      "process": ["photoprism"]
+    },
+    "defaultPort": 2342,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "paperless-ngx",
+    "name": "Paperless-ngx",
+    "description": "Scans, indexes and archives your paper documents.",
+    "category": "app",
+    "icon": "paperless-ngx.svg",
+    "match": {
+      "image": ["paperless-ngx/paperless-ngx", "linuxserver/paperless-ngx"],
+      "unit": ["paperless-webserver", "paperless"],
+      "process": []
+    },
+    "defaultPort": 8000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "vaultwarden",
+    "name": "Vaultwarden",
+    "description": "Lightweight Bitwarden-compatible password manager server.",
+    "category": "app",
+    "icon": "vaultwarden.svg",
+    "match": {
+      "image": ["vaultwarden/server"],
+      "unit": ["vaultwarden"],
+      "process": ["vaultwarden"]
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "bitwarden",
+    "name": "Bitwarden",
+    "description": "Official self-hosted password manager server.",
+    "category": "app",
+    "icon": "bitwarden.svg",
+    "match": {
+      "image": ["bitwarden/self-host", "bitwarden/web"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "gitea",
+    "name": "Gitea",
+    "description": "Lightweight self-hosted Git service.",
+    "category": "app",
+    "icon": "gitea.svg",
+    "match": {
+      "image": ["gitea/gitea"],
+      "unit": ["gitea"],
+      "process": ["gitea"]
+    },
+    "defaultPort": 3000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "forgejo",
+    "name": "Forgejo",
+    "description": "Community-driven self-hosted Git forge.",
+    "category": "app",
+    "icon": "forgejo.svg",
+    "match": {
+      "image": ["forgejo/forgejo"],
+      "unit": ["forgejo"],
+      "process": ["forgejo"]
+    },
+    "defaultPort": 3000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "gitlab",
+    "name": "GitLab",
+    "description": "Git hosting with CI/CD, issues and code review.",
+    "category": "app",
+    "icon": "gitlab.svg",
+    "match": {
+      "image": ["gitlab/gitlab-ce", "gitlab/gitlab-ee"],
+      "unit": ["gitlab-runsvdir"],
+      "process": []
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "portainer",
+    "name": "Portainer",
+    "description": "Web UI for managing Docker containers and stacks.",
+    "category": "infra",
+    "icon": "portainer.svg",
+    "match": {
+      "image": ["portainer/portainer-ce", "portainer/portainer-ee", "portainer/portainer"],
+      "unit": [],
+      "process": ["portainer"]
+    },
+    "defaultPort": 9443,
+    "urlPath": "/",
+    "isHttps": true
+  },
+  {
+    "id": "dockge",
+    "name": "Dockge",
+    "description": "Manages Docker Compose stacks from a web UI.",
+    "category": "infra",
+    "icon": "dockge.svg",
+    "match": {
+      "image": ["louislam/dockge"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 5001,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "watchtower",
+    "name": "Watchtower",
+    "description": "Updates running Docker containers to their latest images.",
+    "category": "infra",
+    "icon": "watchtower.svg",
+    "match": {
+      "image": ["containrrr/watchtower", "beatkind/watchtower", "nickfedor/watchtower"],
+      "unit": [],
+      "process": ["watchtower"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "traefik",
+    "name": "Traefik",
+    "description": "Reverse proxy that configures itself from Docker labels.",
+    "category": "infra",
+    "icon": "traefik.svg",
+    "match": {
+      "image": ["traefik"],
+      "unit": ["traefik"],
+      "process": ["traefik"]
+    },
+    "defaultPort": 8080,
+    "urlPath": "/dashboard/",
+    "isHttps": false
+  },
+  {
+    "id": "nginx",
+    "name": "Nginx",
+    "description": "Web server and reverse proxy.",
+    "category": "infra",
+    "icon": "nginx.svg",
+    "match": {
+      "image": ["nginx", "nginxinc/nginx-unprivileged", "linuxserver/nginx", "bitnami/nginx"],
+      "unit": ["nginx"],
+      "process": ["nginx"]
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "caddy",
+    "name": "Caddy",
+    "description": "Web server and reverse proxy with automatic HTTPS.",
+    "category": "infra",
+    "icon": "caddy.svg",
+    "match": {
+      "image": ["caddy", "lucaslorentz/caddy-docker-proxy"],
+      "unit": ["caddy"],
+      "process": ["caddy"]
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "nginx-proxy-manager",
+    "name": "Nginx Proxy Manager",
+    "description": "Web UI for Nginx reverse proxy hosts and certificates.",
+    "category": "infra",
+    "icon": "nginx-proxy-manager.svg",
+    "match": {
+      "image": ["jc21/nginx-proxy-manager"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 81,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "haproxy",
+    "name": "HAProxy",
+    "description": "High-performance TCP and HTTP load balancer.",
+    "category": "infra",
+    "icon": "haproxy.svg",
+    "match": {
+      "image": ["haproxy", "haproxytech/haproxy-alpine", "haproxytech/haproxy-debian", "bitnami/haproxy"],
+      "unit": ["haproxy"],
+      "process": ["haproxy"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "grafana",
+    "name": "Grafana",
+    "description": "Dashboards and alerting for metrics and logs.",
+    "category": "monitoring",
+    "icon": "grafana.svg",
+    "match": {
+      "image": ["grafana/grafana", "grafana/grafana-oss", "grafana/grafana-enterprise", "bitnami/grafana"],
+      "unit": ["grafana-server", "grafana"],
+      "process": ["grafana", "grafana-server"]
+    },
+    "defaultPort": 3000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "prometheus",
+    "name": "Prometheus",
+    "description": "Time-series database that scrapes and stores metrics.",
+    "category": "monitoring",
+    "icon": "prometheus.svg",
+    "match": {
+      "image": ["prom/prometheus", "bitnami/prometheus"],
+      "unit": ["prometheus"],
+      "process": ["prometheus"]
+    },
+    "defaultPort": 9090,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "node-exporter",
+    "name": "Node Exporter",
+    "description": "Exposes host hardware and OS metrics to Prometheus.",
+    "category": "monitoring",
+    "icon": "node-exporter.svg",
+    "match": {
+      "image": ["prom/node-exporter", "bitnami/node-exporter"],
+      "unit": ["prometheus-node-exporter", "node_exporter", "node-exporter"],
+      "process": ["prometheus-node", "node_exporter"]
+    },
+    "defaultPort": 9100,
+    "urlPath": "/metrics",
+    "isHttps": false
+  },
+  {
+    "id": "cadvisor",
+    "name": "cAdvisor",
+    "description": "Exposes per-container resource usage metrics.",
+    "category": "monitoring",
+    "icon": null,
+    "match": {
+      "image": ["google/cadvisor", "cadvisor/cadvisor"],
+      "unit": ["cadvisor"],
+      "process": ["cadvisor"]
+    },
+    "defaultPort": 8080,
+    "urlPath": "/containers/",
+    "isHttps": false
+  },
+  {
+    "id": "loki",
+    "name": "Loki",
+    "description": "Log aggregation backend for Grafana.",
+    "category": "monitoring",
+    "icon": "loki.svg",
+    "match": {
+      "image": ["grafana/loki"],
+      "unit": ["loki"],
+      "process": ["loki"]
+    },
+    "defaultPort": 3100,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "uptime-kuma",
+    "name": "Uptime Kuma",
+    "description": "Uptime monitor with status pages and notifications.",
+    "category": "monitoring",
+    "icon": "uptime-kuma.svg",
+    "match": {
+      "image": ["louislam/uptime-kuma"],
+      "unit": ["uptime-kuma"],
+      "process": []
+    },
+    "defaultPort": 3001,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "netdata",
+    "name": "Netdata",
+    "description": "Real-time system and application monitoring.",
+    "category": "monitoring",
+    "icon": "netdata.svg",
+    "match": {
+      "image": ["netdata/netdata"],
+      "unit": ["netdata"],
+      "process": ["netdata"]
+    },
+    "defaultPort": 19999,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "influxdb",
+    "name": "InfluxDB",
+    "description": "Time-series database for metrics and events.",
+    "category": "database",
+    "icon": "influxdb.svg",
+    "match": {
+      "image": ["influxdb", "bitnami/influxdb"],
+      "unit": ["influxdb"],
+      "process": ["influxd"]
+    },
+    "defaultPort": 8086,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "telegraf",
+    "name": "Telegraf",
+    "description": "Agent that collects metrics and ships them to databases.",
+    "category": "monitoring",
+    "icon": "telegraf.svg",
+    "match": {
+      "image": ["telegraf"],
+      "unit": ["telegraf"],
+      "process": ["telegraf"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "glances",
+    "name": "Glances",
+    "description": "Cross-platform system monitor with a web UI.",
+    "category": "monitoring",
+    "icon": "glances.svg",
+    "match": {
+      "image": ["nicolargo/glances"],
+      "unit": ["glances"],
+      "process": []
+    },
+    "defaultPort": 61208,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "mysql",
+    "name": "MySQL",
+    "description": "Relational SQL database server.",
+    "category": "database",
+    "icon": "mysql.svg",
+    "match": {
+      "image": ["mysql", "bitnami/mysql", "mysql/mysql-server"],
+      "unit": ["mysql"],
+      "process": ["mysqld"]
+    },
+    "defaultPort": 3306,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "mariadb",
+    "name": "MariaDB",
+    "description": "Community fork of MySQL, a relational SQL database.",
+    "category": "database",
+    "icon": "mariadb.svg",
+    "match": {
+      "image": ["mariadb", "linuxserver/mariadb", "bitnami/mariadb"],
+      "unit": ["mariadb"],
+      "process": ["mariadbd"]
+    },
+    "defaultPort": 3306,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "postgresql",
+    "name": "PostgreSQL",
+    "description": "Advanced open-source relational database.",
+    "category": "database",
+    "icon": "postgresql.svg",
+    "match": {
+      "image": [
+        "postgres",
+        "bitnami/postgresql",
+        "postgis/postgis",
+        "pgvector/pgvector",
+        "tensorchord/pgvecto-rs",
+        "immich-app/postgres"
+      ],
+      "unit": ["postgresql"],
+      "process": ["postgres"]
+    },
+    "defaultPort": 5432,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "redis",
+    "name": "Redis",
+    "description": "In-memory key-value store and cache.",
+    "category": "database",
+    "icon": "redis.svg",
+    "match": {
+      "image": ["redis", "bitnami/redis", "redis/redis-stack-server"],
+      "unit": ["redis-server", "redis"],
+      "process": ["redis-server"]
+    },
+    "defaultPort": 6379,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "valkey",
+    "name": "Valkey",
+    "description": "Open-source Redis-compatible key-value store.",
+    "category": "database",
+    "icon": "valkey.svg",
+    "match": {
+      "image": ["valkey/valkey", "bitnami/valkey"],
+      "unit": ["valkey-server", "valkey"],
+      "process": ["valkey-server"]
+    },
+    "defaultPort": 6379,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "mongodb",
+    "name": "MongoDB",
+    "description": "Document-oriented NoSQL database.",
+    "category": "database",
+    "icon": "mongodb.svg",
+    "match": {
+      "image": ["mongo", "bitnami/mongodb", "mongodb/mongodb-community-server"],
+      "unit": ["mongod"],
+      "process": ["mongod"]
+    },
+    "defaultPort": 27017,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "elasticsearch",
+    "name": "Elasticsearch",
+    "description": "Distributed search and analytics engine.",
+    "category": "database",
+    "icon": "elasticsearch.svg",
+    "match": {
+      "image": ["elasticsearch", "elasticsearch/elasticsearch", "elastic/elasticsearch", "bitnami/elasticsearch"],
+      "unit": ["elasticsearch"],
+      "process": []
+    },
+    "defaultPort": 9200,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "meilisearch",
+    "name": "Meilisearch",
+    "description": "Fast, typo-tolerant search engine.",
+    "category": "database",
+    "icon": "meilisearch.svg",
+    "match": {
+      "image": ["getmeili/meilisearch"],
+      "unit": ["meilisearch"],
+      "process": ["meilisearch"]
+    },
+    "defaultPort": 7700,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "minio",
+    "name": "MinIO",
+    "description": "S3-compatible object storage server.",
+    "category": "infra",
+    "icon": "minio.svg",
+    "match": {
+      "image": ["minio/minio", "bitnami/minio"],
+      "unit": ["minio"],
+      "process": ["minio"]
+    },
+    "defaultPort": 9001,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "syncthing",
+    "name": "Syncthing",
+    "description": "Continuous peer-to-peer file synchronization.",
+    "category": "app",
+    "icon": "syncthing.svg",
+    "match": {
+      "image": ["syncthing/syncthing", "linuxserver/syncthing"],
+      "unit": ["syncthing"],
+      "process": ["syncthing"]
+    },
+    "defaultPort": 8384,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "samba",
+    "name": "Samba",
+    "description": "Windows-compatible SMB file sharing.",
+    "category": "infra",
+    "icon": "samba.svg",
+    "match": {
+      "image": ["dperson/samba", "servercontainers/samba"],
+      "unit": ["smbd"],
+      "process": ["smbd"]
+    },
+    "defaultPort": 445,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "nfs-server",
+    "name": "NFS Server",
+    "description": "Shares directories over the network file system protocol.",
+    "category": "infra",
+    "icon": null,
+    "match": {
+      "image": ["erichough/nfs-server", "itsthenetwork/nfs-server-alpine"],
+      "unit": ["nfs-server", "nfs-kernel-server"],
+      "process": []
+    },
+    "defaultPort": 2049,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "wireguard",
+    "name": "WireGuard",
+    "description": "Fast, modern VPN tunnel.",
+    "category": "infra",
+    "icon": "wireguard.svg",
+    "match": {
+      "image": ["linuxserver/wireguard"],
+      "unit": ["wg-quick"],
+      "process": []
+    },
+    "defaultPort": 51820,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "wg-easy",
+    "name": "wg-easy",
+    "description": "WireGuard VPN with a web UI for managing clients.",
+    "category": "infra",
+    "icon": "wg-easy.svg",
+    "match": {
+      "image": ["wg-easy/wg-easy", "weejewel/wg-easy"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 51821,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "tailscale",
+    "name": "Tailscale",
+    "description": "Mesh VPN built on WireGuard.",
+    "category": "infra",
+    "icon": "tailscale.svg",
+    "match": {
+      "image": ["tailscale/tailscale"],
+      "unit": ["tailscaled"],
+      "process": ["tailscaled"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "cloudflared",
+    "name": "Cloudflared",
+    "description": "Cloudflare Tunnel connector that exposes services without open ports.",
+    "category": "infra",
+    "icon": "cloudflared.svg",
+    "match": {
+      "image": ["cloudflare/cloudflared"],
+      "unit": ["cloudflared"],
+      "process": ["cloudflared"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "authelia",
+    "name": "Authelia",
+    "description": "Single sign-on and two-factor authentication portal.",
+    "category": "infra",
+    "icon": "authelia.svg",
+    "match": {
+      "image": ["authelia/authelia"],
+      "unit": ["authelia"],
+      "process": ["authelia"]
+    },
+    "defaultPort": 9091,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "authentik",
+    "name": "Authentik",
+    "description": "Identity provider with SSO, OAuth2 and LDAP.",
+    "category": "infra",
+    "icon": "authentik.svg",
+    "match": {
+      "image": ["goauthentik/server", "beryju/authentik"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 9000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "keycloak",
+    "name": "Keycloak",
+    "description": "Identity and access management server.",
+    "category": "infra",
+    "icon": "keycloak.svg",
+    "match": {
+      "image": ["keycloak/keycloak", "jboss/keycloak", "bitnami/keycloak"],
+      "unit": ["keycloak"],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "homepage",
+    "name": "Homepage",
+    "description": "Customizable application dashboard with service widgets.",
+    "category": "app",
+    "icon": null,
+    "match": {
+      "image": ["gethomepage/homepage", "benphelps/homepage"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 3000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "homarr",
+    "name": "Homarr",
+    "description": "Customizable dashboard for your homelab services.",
+    "category": "app",
+    "icon": "homarr.svg",
+    "match": {
+      "image": ["homarr-labs/homarr", "ajnart/homarr"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 7575,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "heimdall",
+    "name": "Heimdall",
+    "description": "Application dashboard and launcher.",
+    "category": "app",
+    "icon": "heimdall.svg",
+    "match": {
+      "image": ["linuxserver/heimdall"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "dashy",
+    "name": "Dashy",
+    "description": "Highly configurable homelab dashboard.",
+    "category": "app",
+    "icon": null,
+    "match": {
+      "image": ["lissy93/dashy"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "code-server",
+    "name": "code-server",
+    "description": "VS Code running in the browser.",
+    "category": "app",
+    "icon": "code-server.svg",
+    "match": {
+      "image": ["codercom/code-server", "linuxserver/code-server"],
+      "unit": ["code-server"],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "jupyter",
+    "name": "Jupyter",
+    "description": "Interactive notebooks for Python and data science.",
+    "category": "app",
+    "icon": "jupyter.svg",
+    "match": {
+      "image": [
+        "jupyter/base-notebook",
+        "jupyter/minimal-notebook",
+        "jupyter/scipy-notebook",
+        "jupyter/datascience-notebook",
+        "jupyter/tensorflow-notebook",
+        "jupyter/pytorch-notebook",
+        "jupyter/pyspark-notebook",
+        "jupyterhub/jupyterhub"
+      ],
+      "unit": ["jupyter", "jupyterhub", "jupyterlab"],
+      "process": ["jupyter-lab", "jupyter-noteboo", "jupyterhub"]
+    },
+    "defaultPort": 8888,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "ollama",
+    "name": "Ollama",
+    "description": "Runs large language models locally behind an API.",
+    "category": "app",
+    "icon": "ollama.svg",
+    "match": {
+      "image": ["ollama/ollama"],
+      "unit": ["ollama"],
+      "process": ["ollama"]
+    },
+    "defaultPort": 11434,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "open-webui",
+    "name": "Open WebUI",
+    "description": "Chat interface for Ollama and OpenAI-compatible models.",
+    "category": "app",
+    "icon": "open-webui.svg",
+    "match": {
+      "image": ["open-webui/open-webui"],
+      "unit": ["open-webui"],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "frigate",
+    "name": "Frigate",
+    "description": "Network video recorder with AI object detection.",
+    "category": "app",
+    "icon": "frigate.svg",
+    "match": {
+      "image": ["blakeblackshear/frigate"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 8971,
+    "urlPath": "/",
+    "isHttps": true
+  },
+  {
+    "id": "scrutiny",
+    "name": "Scrutiny",
+    "description": "Hard drive S.M.A.R.T. monitoring dashboard.",
+    "category": "monitoring",
+    "icon": "scrutiny.svg",
+    "match": {
+      "image": ["analogj/scrutiny"],
+      "unit": ["scrutiny"],
+      "process": ["scrutiny"]
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "calibre-web",
+    "name": "Calibre-Web",
+    "description": "Web app for browsing and reading a Calibre ebook library.",
+    "category": "app",
+    "icon": "calibre-web.svg",
+    "match": {
+      "image": ["linuxserver/calibre-web", "technosoft2000/calibre-web"],
+      "unit": ["calibre-web", "cps"],
+      "process": []
+    },
+    "defaultPort": 8083,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "audiobookshelf",
+    "name": "Audiobookshelf",
+    "description": "Audiobook and podcast server.",
+    "category": "app",
+    "icon": "audiobookshelf.svg",
+    "match": {
+      "image": ["advplyr/audiobookshelf"],
+      "unit": ["audiobookshelf"],
+      "process": []
+    },
+    "defaultPort": 13378,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "navidrome",
+    "name": "Navidrome",
+    "description": "Music streaming server compatible with Subsonic clients.",
+    "category": "app",
+    "icon": "navidrome.svg",
+    "match": {
+      "image": ["deluan/navidrome"],
+      "unit": ["navidrome"],
+      "process": ["navidrome"]
+    },
+    "defaultPort": 4533,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "freshrss",
+    "name": "FreshRSS",
+    "description": "Self-hosted RSS feed aggregator.",
+    "category": "app",
+    "icon": "freshrss.svg",
+    "match": {
+      "image": ["freshrss/freshrss", "linuxserver/freshrss"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 80,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "mealie",
+    "name": "Mealie",
+    "description": "Recipe manager and meal planner.",
+    "category": "app",
+    "icon": "mealie.svg",
+    "match": {
+      "image": ["mealie-recipes/mealie", "hkotel/mealie"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 9000,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "actual-budget",
+    "name": "Actual Budget",
+    "description": "Local-first personal budgeting app.",
+    "category": "app",
+    "icon": "actual-budget.svg",
+    "match": {
+      "image": ["actualbudget/actual-server", "jlongster/actual-server"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 5006,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "firefly-iii",
+    "name": "Firefly III",
+    "description": "Personal finance manager.",
+    "category": "app",
+    "icon": "firefly-iii.svg",
+    "match": {
+      "image": ["fireflyiii/core", "jc5x/firefly-iii"],
+      "unit": [],
+      "process": []
+    },
+    "defaultPort": 8080,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "n8n",
+    "name": "n8n",
+    "description": "Workflow automation tool with hundreds of integrations.",
+    "category": "app",
+    "icon": "n8n.svg",
+    "match": {
+      "image": ["n8nio/n8n"],
+      "unit": ["n8n"],
+      "process": []
+    },
+    "defaultPort": 5678,
+    "urlPath": "/",
+    "isHttps": false
+  },
+  {
+    "id": "docker",
+    "name": "Docker",
+    "description": "Container engine that runs your Docker containers.",
+    "category": "infra",
+    "icon": "docker.svg",
+    "match": {
+      "image": [],
+      "unit": ["docker"],
+      "process": ["dockerd"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  },
+  {
+    "id": "containerd",
+    "name": "containerd",
+    "description": "Container runtime used by Docker and Kubernetes.",
+    "category": "infra",
+    "icon": null,
+    "match": {
+      "image": [],
+      "unit": ["containerd"],
+      "process": ["containerd"]
+    },
+    "defaultPort": null,
+    "urlPath": null,
+    "isHttps": false
+  }
+]

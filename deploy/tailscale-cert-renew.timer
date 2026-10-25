@@ -1,0 +1,13 @@
+# Tailscale certificates last 90 days and are renewed in their last third (about 30 days).
+# A weekly check always lands inside that window; a monthly one can miss it by a day or two.
+
+[Unit]
+Description=Weekly Tailscale TLS certificate renewal for nginx
+
+[Timer]
+OnCalendar=weekly
+RandomizedDelaySec=6h
+Persistent=yes
+
+[Install]
+WantedBy=timers.target

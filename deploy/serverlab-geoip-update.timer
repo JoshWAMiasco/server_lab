@@ -1,0 +1,13 @@
+# Monthly refresh of the DB-IP City Lite database. DB-IP publishes a new file at the start of
+# each month, so this runs on the 3rd. Persistent=yes catches up after the server was off.
+
+[Unit]
+Description=ServerLab: monthly DB-IP City Lite update
+
+[Timer]
+OnCalendar=*-*-03 04:00:00
+RandomizedDelaySec=6h
+Persistent=yes
+
+[Install]
+WantedBy=timers.target

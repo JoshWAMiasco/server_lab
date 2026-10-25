@@ -1,0 +1,17 @@
+Oct 18 14:02:11 homelab sshd[41234]: Accepted publickey for joshua from 100.101.2.3 port 52144 ssh2: ED25519 SHA256:3k1bKq9nY2XcVd8rT0pLmZ4aB6fG7hJ8kL9mN0pQ1rS
+Oct 18 14:02:11 homelab sshd[41234]: pam_unix(sshd:session): session opened for user joshua(uid=1000) by (uid=0)
+Oct 18 14:05:33 homelab sshd[41301]: Invalid user admin from 185.220.101.34 port 40112
+Oct 18 14:05:35 homelab sshd[41301]: pam_unix(sshd:auth): check pass; user unknown
+Oct 18 14:05:35 homelab sshd[41301]: pam_unix(sshd:auth): authentication failure; logname= uid=0 euid=0 tty=ssh ruser= rhost=185.220.101.34
+Oct 18 14:05:37 homelab sshd[41301]: Failed password for invalid user admin from 185.220.101.34 port 40112 ssh2
+Oct 18 14:05:38 homelab sshd[41301]: Received disconnect from 185.220.101.34 port 40112:11: Bye Bye [preauth]
+Oct 18 14:05:38 homelab sshd[41301]: Disconnected from invalid user admin 185.220.101.34 port 40112 [preauth]
+Oct 18 14:06:01 homelab sshd[41322]: Failed password for root from 218.92.0.112 port 61022 ssh2
+Oct 18 14:06:04 homelab sshd[41322]: message repeated 2 times: [ Failed password for root from 218.92.0.112 port 61022 ssh2]
+Oct 18 14:06:06 homelab sshd[41322]: error: maximum authentication attempts exceeded for root from 218.92.0.112 port 61022 ssh2 [preauth]
+Oct 18 14:06:06 homelab sshd[41322]: Disconnecting authenticating user root 218.92.0.112 port 61022: Too many authentication failures [preauth]
+Oct 18 14:07:12 homelab sshd[41400]: Connection closed by authenticating user ubuntu 45.148.10.240 port 33912 [preauth]
+Oct 18 14:09:59 homelab sshd[41455]: Received disconnect from 100.101.2.3 port 52144:11: disconnected by user
+Oct 18 14:09:59 homelab sshd[41455]: Disconnected from user joshua 100.101.2.3 port 52144
+Oct 18 14:09:59 homelab sshd[41234]: pam_unix(sshd:session): session closed for user joshua
+Oct 18 14:12:44 homelab CRON[41500]: pam_unix(cron:session): session opened for user root(uid=0) by (uid=0)
