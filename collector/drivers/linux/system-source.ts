@@ -28,7 +28,7 @@ function perSecond(current: number, previous: number | undefined, elapsedSeconds
 export class SystemReader {
   private previous: PreviousCounters | null = null;
 
-  constructor(private readonly includedExtraInterfaces: readonly string[] = (process.env.NETWORK_INTERFACE_EXCLUDE ?? "").split(",").filter(Boolean)) {}
+  constructor(private readonly excludedExtraInterfaces: readonly string[] = (process.env.NETWORK_INTERFACE_EXCLUDE ?? "").split(",").filter(Boolean)) {}
 
   async read(): Promise<Omit<SystemSample, "gpus">> {
     const timestamp = Date.now();
@@ -42,7 +42,7 @@ export class SystemReader {
       readHardwareTemperatures(),
     ]);
     const processor = parseProcStat(statText ?? "");
-    const interfaces = parseProcNetDevice(networkDeviceText ?? "").filter((counters) => isPhysicalInterface(counters.interfaceName, this.includedExtraInterfaces, true));
+    const interfaces = parseProcNetDevice(networkDeviceText ?? "").filter((counters) => isPhysicalInterface(counters.interfaceName, this.excludedExtraInterfaces, true));
     const disks = parseDiskstats(diskstatsText ?? "");
     const previous = this.previous;
     const elapsedSeconds = previous ? (timestamp - previous.timestamp) / 1000 : 0;
