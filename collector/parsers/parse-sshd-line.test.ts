@@ -142,6 +142,26 @@ const CASES: [string, string, Expected][] = [
   ["user logout", "Disconnected from user joshua 100.101.2.3 port 52144", null],
   ["timeout", "Timeout before authentication for 193.32.162.20 port 50132", null],
   ["kex", "Unable to negotiate with 92.255.85.37 port 61224: no matching host key type found. Their offer: ssh-rsa,ssh-dss [preauth]", null],
+  [
+    "invalid user whose name forges a tailnet source",
+    "Invalid user evil from 100.64.0.7 port 1 from 203.0.113.9 port 4444",
+    { username: "evil from 100.64.0.7 port 1", result: "invalid_user", method: "none", sourceAddress: "203.0.113.9", sourcePort: 4444 },
+  ],
+  [
+    "failed password whose name forges a tailnet source",
+    "Failed password for invalid user evil from 100.64.0.7 port 1 from 203.0.113.9 port 4444 ssh2",
+    { username: "evil from 100.64.0.7 port 1", result: "invalid_user", method: "password", sourceAddress: "203.0.113.9", sourcePort: 4444 },
+  ],
+  [
+    "invalid user whose name forges a portless source",
+    "Invalid user evil from 100.64.0.7 from 203.0.113.9",
+    { username: "evil from 100.64.0.7", result: "invalid_user", method: "none", sourceAddress: "203.0.113.9", sourcePort: null },
+  ],
+  [
+    "invalid user whose name forges a preauth tail",
+    "Invalid user evil from 100.64.0.7 port 1 [preauth] from 203.0.113.9 port 4444 [preauth]",
+    { username: "evil from 100.64.0.7 port 1 [preauth]", result: "invalid_user", method: "none", sourceAddress: "203.0.113.9", sourcePort: 4444 },
+  ],
 ];
 
 describe("parseSshdLine", () => {

@@ -23,11 +23,18 @@ import type { LoginResult, ParsedLoginEvent } from "../types";
 const SYSLOG_PREFIX = /^.*?\bsshd(?:-session)?\[\d+\]:\s+/;
 const REPEATED_MESSAGE = /^message repeated \d+ times: \[\s*(.*?)\s*\]$/;
 
-const ACCEPTED = /^Accepted (\S+) for (.+?) from (\S+) port (\d+)/;
-const FAILED_INVALID_USER = /^Failed (\S+) for invalid user (.*?) from (\S+) port (\d+)/;
-const FAILED = /^Failed (\S+) for (.+?) from (\S+) port (\d+)/;
-const INVALID_USER = /^Invalid user (.*?) from (\S+)(?: port (\d+))?/;
-const CLOSED_AUTHENTICATING = /^Connection closed by authenticating user (.+?) (\S+) port (\d+)/;
+/*
+ * Usernames are attacker-controlled and may contain spaces, so a name like `x from 100.64.0.7 port 1`
+ * must not be read as the source. sshd always appends the real ` from <address> port <port>` last:
+ * the username groups are greedy and the known tail (` ssh2`, the key fingerprint, ` [preauth]`) is
+ * anchored to the end of the line, so the last address wins.
+ */
+const LINE_TAIL = String.raw`(?: ssh2(?:: .*)?)?(?: \[preauth\])?$`;
+const ACCEPTED = new RegExp(String.raw`^Accepted (\S+) for (.+) from (\S+) port (\d+)` + LINE_TAIL);
+const FAILED_INVALID_USER = new RegExp(String.raw`^Failed (\S+) for invalid user (.*) from (\S+) port (\d+)` + LINE_TAIL);
+const FAILED = new RegExp(String.raw`^Failed (\S+) for (.+) from (\S+) port (\d+)` + LINE_TAIL);
+const INVALID_USER = new RegExp(String.raw`^Invalid user (.*) from (\S+)(?: port (\d+))?` + LINE_TAIL);
+const CLOSED_AUTHENTICATING = new RegExp(String.raw`^Connection closed by authenticating user (.+) (\S+) port (\d+)` + LINE_TAIL);
 
 interface LinePattern {
   pattern: RegExp;
