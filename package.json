@@ -15,7 +15,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "serverlab": "tsx scripts/serverlab-cli.ts",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit",
+    "type-check": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "smoke": "node scripts/smoke-test.mjs"
   },
