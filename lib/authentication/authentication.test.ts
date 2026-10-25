@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { readLockedUntil, recordFailedAttempt, recordSuccessfulAttempt } from "@/lib/authentication/login-throttle";
+import { readLockedUntil, recordFailedAttempt, recordSuccessfulAttempt, verifyWithThrottle } from "@/lib/authentication/login-throttle";
 import { hashPassword, verifyPassword } from "@/lib/authentication/password";
 import { createSession, hashSessionToken, revokeSessionByToken, validateSession } from "@/lib/authentication/session-store";
 import type { ServerLabDatabase } from "@/lib/database/client";
@@ -53,5 +53,33 @@ describe("authentication", () => {
     for (let attempt = 1; attempt <= 4; attempt += 1) recordFailedAttempt(database, "203.0.113.10");
     recordSuccessfulAttempt(database, "203.0.113.10");
     expect(recordFailedAttempt(database, "203.0.113.10")).toBeNull();
+  });
+
+  it("counts concurrent attempts before verifying, so they cannot outrun the lockout", async () => {
+    let verifyCount = 0;
+    const slowWrongPassword = async () => {
+      verifyCount += 1;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return false;
+    };
+    const results = await Promise.all(Array.from({ length: 10 }, () => verifyWithThrottle(database, "203.0.113.20", slowWrongPassword)));
+    expect(verifyCount).toBe(5);
+    expect(results.filter((result) => result.lockedUntil !== null)).toHaveLength(6);
+    expect(readLockedUntil(database, "203.0.113.20")).not.toBeNull();
+  });
+
+  it("clears the reserved attempt when the password is right", async () => {
+    for (let attempt = 1; attempt <= 3; attempt += 1) recordFailedAttempt(database, "203.0.113.21");
+    expect(await verifyWithThrottle(database, "203.0.113.21", async () => true)).toEqual({ isValid: true, lockedUntil: null });
+    for (let attempt = 1; attempt <= 4; attempt += 1) expect(recordFailedAttempt(database, "203.0.113.21")).toBeNull();
+  });
+
+  it("does not verify while locked", async () => {
+    for (let attempt = 1; attempt <= 5; attempt += 1) recordFailedAttempt(database, "203.0.113.22");
+    let wasVerified = false;
+    const result = await verifyWithThrottle(database, "203.0.113.22", async () => (wasVerified = true));
+    expect(wasVerified).toBe(false);
+    expect(result.isValid).toBe(false);
+    expect(result.lockedUntil).not.toBeNull();
   });
 });

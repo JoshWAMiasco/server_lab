@@ -7,7 +7,7 @@ import { z } from "zod";
 import { MINIMUM_PASSWORD_LENGTH, hashPassword, verifyPassword } from "@/lib/authentication/password";
 import { readClientAddress, readUserAgent, isSecureCookie } from "@/lib/authentication/request-context";
 import { hasAdminAccount, requireSession } from "@/lib/authentication/require-session";
-import { readLockedUntil, recordFailedAttempt, recordSuccessfulAttempt } from "@/lib/authentication/login-throttle";
+import { readLockedUntil, recordFailedAttempt, recordSuccessfulAttempt, verifyWithThrottle } from "@/lib/authentication/login-throttle";
 import { SESSION_COOKIE_NAME, createSession, revokeOtherSessions, revokeSessionByHash, revokeSessionByToken } from "@/lib/authentication/session-store";
 import { readSafeNextPath } from "@/lib/authentication/safe-next-path";
 import { completeSetupToken, isSetupTokenValid } from "@/lib/authentication/setup-token";
@@ -40,12 +40,12 @@ function formatLockout(lockedUntil: number): string {
 export async function signIn(formValues: { password: string; nextPath?: string }): Promise<ActionResult> {
   const database = getDatabase();
   const ipAddress = (await readClientAddress()) ?? "unknown";
-  const lockedUntil = readLockedUntil(database, ipAddress);
-  if (lockedUntil) return { errorMessage: `Locked, try again in ${formatLockout(lockedUntil)}.` };
+  const currentLockedUntil = readLockedUntil(database, ipAddress);
+  if (currentLockedUntil) return { errorMessage: `Locked, try again in ${formatLockout(currentLockedUntil)}.` };
 
   const admin = database.select().from(adminAccount).where(eq(adminAccount.id, 1)).get();
   if (!admin) redirect("/setup");
-  const isValid = await verifyPassword(admin.passwordHash, String(formValues.password ?? ""));
+  const { isValid, lockedUntil } = await verifyWithThrottle(database, ipAddress, () => verifyPassword(admin.passwordHash, String(formValues.password ?? "")));
   const loginTimestamp = Date.now();
   await storeLoginEvent(database, {
     timestamp: loginTimestamp,
@@ -58,11 +58,7 @@ export async function signIn(formValues: { password: string; nextPath?: string }
     raw: `ServerLab web sign-in ${isValid ? "succeeded" : "failed"} from ${ipAddress}`,
   });
 
-  if (!isValid) {
-    const newLockedUntil = recordFailedAttempt(database, ipAddress);
-    return { errorMessage: newLockedUntil ? `Locked, try again in ${formatLockout(newLockedUntil)}.` : "Wrong password." };
-  }
-  recordSuccessfulAttempt(database, ipAddress);
+  if (!isValid) return { errorMessage: lockedUntil ? `Locked, try again in ${formatLockout(lockedUntil)}.` : "Wrong password." };
   await startSession();
   redirect(readSafeNextPath(formValues.nextPath));
 }

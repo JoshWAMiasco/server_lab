@@ -41,3 +41,19 @@ export function recordFailedAttempt(database: ServerLabDatabase, ipAddress: stri
 export function recordSuccessfulAttempt(database: ServerLabDatabase, ipAddress: string): void {
   database.update(loginThrottle).set({ failures: 0, lockedUntil: null }).where(eq(loginThrottle.ipAddress, ipAddress)).run();
 }
+
+/**
+ * Runs a slow check (argon2) under the lockout. The attempt is counted as a failure before the
+ * check starts, synchronously, so concurrent requests from one IP see it and at most
+ * MAXIMUM_FAILURES checks run per window. A successful check clears the count again.
+ */
+export async function verifyWithThrottle(database: ServerLabDatabase, ipAddress: string, verify: () => Promise<boolean>): Promise<{ isValid: boolean; lockedUntil: number | null }> {
+  const lockedUntil = readLockedUntil(database, ipAddress);
+  if (lockedUntil) return { isValid: false, lockedUntil };
+  const reservedLockedUntil = recordFailedAttempt(database, ipAddress);
+  if (await verify()) {
+    recordSuccessfulAttempt(database, ipAddress);
+    return { isValid: true, lockedUntil: null };
+  }
+  return { isValid: false, lockedUntil: reservedLockedUntil };
+}
