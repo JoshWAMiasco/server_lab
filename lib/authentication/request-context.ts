@@ -1,15 +1,26 @@
+import { isIP } from "node:net";
 import { headers } from "next/headers";
 
 /**
- * The client IP as seen by nginx (`X-Real-IP`, then the first `X-Forwarded-For` hop). The web
- * process listens on 127.0.0.1 only, so these headers can only come from the local proxy.
+ * The client IP from nginx's `X-Real-IP`, else the first `X-Forwarded-For` hop. Values that are not
+ * IP addresses are ignored, so a client that reaches 127.0.0.1:3000 without nginx cannot write
+ * arbitrary text into the User Watcher.
+ */
+export function pickClientAddress(realAddress: string | null, forwardedFor: string | null): string | null {
+  for (const candidate of [realAddress, forwardedFor?.split(",")[0]]) {
+    const trimmed = candidate?.trim() ?? "";
+    if (isIP(trimmed)) return trimmed;
+  }
+  return null;
+}
+
+/**
+ * The client IP as seen by nginx. The web process listens on 127.0.0.1 only, so these headers come
+ * from the local proxy (or from another local process, which is why they are only validated, not trusted).
  */
 export async function readClientAddress(): Promise<string | null> {
   const requestHeaders = await headers();
-  const realAddress = requestHeaders.get("x-real-ip");
-  if (realAddress) return realAddress.trim();
-  const forwardedFor = requestHeaders.get("x-forwarded-for");
-  return forwardedFor?.split(",")[0]?.trim() || null;
+  return pickClientAddress(requestHeaders.get("x-real-ip"), requestHeaders.get("x-forwarded-for"));
 }
 
 /**
