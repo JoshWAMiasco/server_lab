@@ -12,7 +12,7 @@ import { NginxSource, toNginxItems } from "@/collector/drivers/linux/nginx-sourc
 import { isProgramAvailable } from "@/collector/drivers/linux/run-command";
 import { SystemReader } from "@/collector/drivers/linux/system-source";
 import { readSystemdUnits, toSystemdItems } from "@/collector/drivers/linux/systemd-source";
-import { mapTailnetDevices, readMagicDnsName, readTailscaleStatus } from "@/collector/drivers/linux/tailscale-source";
+import { mapTailnetDevices, readMagicDnsName, readPeerApiPorts, readTailscaleStatus } from "@/collector/drivers/linux/tailscale-source";
 import { classifyBindAddress, widestBindScope } from "@/collector/parsers/parse-ss-listeners";
 import { isDockerAvailable } from "@/collector/sources/docker-client";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ListeningSocket, ParsedLoginEvent, SystemSample } from "@/collector/types";
@@ -73,11 +73,12 @@ export class LinuxDriver implements CollectorDriver {
   }
 
   async discoverItems(): Promise<DiscoveredItem[]> {
-    const [containers, units, listeners, sites] = await Promise.all([
+    const [containers, units, listeners, sites, tailscaleStatus] = await Promise.all([
       this.hasDocker ? discoverDockerContainers().catch(() => []) : Promise.resolve([]),
       readSystemdUnits().catch(() => []),
       readListeners().catch(() => [] as ListeningSocket[]),
       this.hasNginx ? this.nginxSource.readSites().catch(() => []) : Promise.resolve([]),
+      readTailscaleStatus(),
     ]);
     const unitItems = toSystemdItems(units);
     const dockerPorts = new Set(containers.flatMap((container) => container.ports.map((port) => port.hostPort)));
@@ -85,6 +86,8 @@ export class LinuxDriver implements CollectorDriver {
     const nginxPorts = new Set(sites.flatMap((site) => site.listenPorts));
     const nginxUnit = unitItems.find((item) => item.unit === "nginx.service");
     if (nginxUnit?.unit) for (const port of nginxPorts) unitPortHints.set(port, nginxUnit.unit);
+    const tailscaleUnit = unitItems.find((item) => item.unit === "tailscaled.service");
+    if (tailscaleUnit?.unit) for (const port of readPeerApiPorts(tailscaleStatus)) unitPortHints.set(port, tailscaleUnit.unit);
     for (const unitItem of unitItems) {
       const defaultPort = matchCatalogEntry({ unit: unitItem.unit })?.defaultPort;
       if (defaultPort && unitItem.unit && !unitPortHints.has(defaultPort)) unitPortHints.set(defaultPort, unitItem.unit);

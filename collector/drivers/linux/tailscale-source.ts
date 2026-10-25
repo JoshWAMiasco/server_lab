@@ -1,7 +1,7 @@
 import { runCommand } from "@/collector/drivers/linux/run-command";
 
 interface TailscaleStatus {
-  Self?: { DNSName?: string; HostName?: string; TailscaleIPs?: string[] };
+  Self?: { DNSName?: string; HostName?: string; TailscaleIPs?: string[]; PeerAPIURL?: string[] };
   Peer?: Record<string, { DNSName?: string; HostName?: string; TailscaleIPs?: string[] }>;
 }
 
@@ -36,4 +36,18 @@ export function mapTailnetDevices(status: TailscaleStatus | null): Map<string, s
  */
 export function readMagicDnsName(status: TailscaleStatus | null): string | null {
   return status?.Self?.DNSName?.replace(/\.$/, "") || null;
+}
+
+/**
+ * Ports of tailscaled's PeerAPI listeners (one per Tailscale address, random on each start), so the
+ * Lobby can attribute them to tailscaled instead of showing them as unnamed ports.
+ */
+export function readPeerApiPorts(status: TailscaleStatus | null): number[] {
+  const ports: number[] = [];
+  for (const peerApiUrl of status?.Self?.PeerAPIURL ?? []) {
+    if (!URL.canParse(peerApiUrl)) continue;
+    const port = Number(new URL(peerApiUrl).port);
+    if (Number.isInteger(port) && port > 0) ports.push(port);
+  }
+  return ports;
 }
