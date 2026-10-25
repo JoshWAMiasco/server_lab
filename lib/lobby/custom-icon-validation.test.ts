@@ -24,6 +24,10 @@ describe("validateIconUpload", () => {
     ['<svg><image href="https://tracker.example/x.png"/></svg>', "external image"],
     ['<svg><style>@import url(https://evil.example/a.css);</style></svg>', "import"],
     ['<!DOCTYPE svg [<!ENTITY x "y">]><svg></svg>', "entity"],
+    [String.raw`<svg><rect style="fill:u\72l(https://evil.example/x)"/></svg>`, "CSS-escaped url()"],
+    [String.raw`<svg><style>@\69mport "https://evil.example/a.css";</style></svg>`, "CSS-escaped import"],
+    ['<svg><rect style="fill:&#117;rl(https://evil.example/x)"/></svg>', "character-referenced url()"],
+    ['<svg><rect style="fill:&#x75;rl(https://evil.example/x)"/></svg>', "hex character-referenced url()"],
   ])("rejects an SVG with %s (%s)", (svgText) => {
     expect(validateIconUpload(encode(svgText))).toHaveProperty("errorMessage");
   });

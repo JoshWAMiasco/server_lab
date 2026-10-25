@@ -7,8 +7,12 @@ export type AcceptedIconType = (typeof ACCEPTED_ICON_TYPES)[number];
 /*
  * SVG is text that browsers can execute, so only plain drawings pass: no scripts, event handlers,
  * embedded documents, entity declarations or references outside the file (except data: images).
+ * CSS escapes (`u\72l(`) and XML character references (`&#117;rl(`) are rejected outright: they
+ * would let the other patterns be spelled in a way these regexes cannot see.
  */
 const FORBIDDEN_SVG_PATTERNS: readonly RegExp[] = [
+  /\\/,
+  /&#/,
   /<\s*script/i,
   /<\s*foreignObject/i,
   /<\s*(iframe|embed|object|audio|video|animate|set|handler|listener)\b/i,
