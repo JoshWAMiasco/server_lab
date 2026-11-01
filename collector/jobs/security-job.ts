@@ -6,12 +6,12 @@ import { hostActionRequests } from "@/lib/schema/security";
 import { SECURITY_CAPABILITY_KEY, SECURITY_REFRESH_REQUEST_KEY, type HostActionResult } from "@/lib/security/security-types";
 import { securityActionSchema } from "@/lib/security/security-validation";
 
-const SNAPSHOT_INTERVAL_MILLISECONDS = 60_000;
+const SNAPSHOT_INTERVAL_MILLISECONDS = 5 * 60_000;
 
 /**
  * Carries out firewall and fail2ban changes queued by the web pages (oldest first, one at a time)
- * and publishes the host's UFW and fail2ban state: every minute, after each change, and when the
- * page asks for a refresh. Requests left `running` by a previous collector are marked failed.
+ * and publishes the host's UFW and fail2ban state: every five minutes, after each change, and when
+ * a page asks for a refresh (opening the page does). Requests left `running` by a previous collector are marked failed.
  */
 export function createSecurityJob(
   database: ServerLabDatabase,

@@ -28,6 +28,7 @@ describe("executeHostAction", () => {
     expect(ranCommands).toEqual([
       "ufw status verbose",
       "ufw status numbered",
+      "ufw show added",
       "fail2ban-client version",
       "fail2ban-client status",
       "fail2ban-client status nginx-http-auth",

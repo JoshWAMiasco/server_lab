@@ -31,6 +31,7 @@ export class MockSecurity {
     toFirewallRule(0, "22/tcp (v6)", "LIMIT IN", "Anywhere (v6)", "ssh, rate limited"),
     toFirewallRule(0, "Anywhere (v6) on tailscale0", "ALLOW IN", "Anywhere (v6)", "tailnet"),
   ];
+  private readonly addedRules: string[] = ["ufw limit 22/tcp comment 'ssh, rate limited'", "ufw allow in on tailscale0 comment 'tailnet'", "ufw deny from 192.168.1.0/24 to any port 8443"];
   private readonly jails: Fail2banJail[] = [
     { name: "sshd", currentlyFailed: 4, totalFailed: 318, currentlyBanned: 3, totalBanned: 41, bannedAddresses: MOCK_ATTACKER_ADDRESSES.slice(0, 3), banTimeSeconds: 3600, findTimeSeconds: 600, maximumRetries: 5 },
     { name: "nginx-http-auth", currentlyFailed: 0, totalFailed: 12, currentlyBanned: 1, totalBanned: 2, bannedAddresses: MOCK_ATTACKER_ADDRESSES.slice(5, 6), banTimeSeconds: 600, findTimeSeconds: 600, maximumRetries: 5 },
@@ -47,6 +48,7 @@ export class MockSecurity {
         defaults: this.firewallStatus === "active" ? { ...this.defaults } : null,
         logging: this.logging,
         rules: this.firewallStatus === "active" ? this.rules.map((rule, index) => ({ ...rule, number: index + 1 })) : [],
+        addedRules: this.addedRules,
       },
       fail2ban: { status: "running", version: "1.1.0", jails: this.jails.map((jail) => ({ ...jail, bannedAddresses: [...jail.bannedAddresses] })) },
     };
@@ -94,6 +96,7 @@ export class MockSecurity {
         const direction = rule.direction === "in" ? "IN" : "OUT";
         const from = rule.fromAddress ?? "Anywhere";
         this.rules.push(toFirewallRule(0, ruleTo(rule), `${rule.action.toUpperCase()} ${direction}`, from, rule.comment));
+        this.addedRules.push(formatCommandLine(buildActionCommands(action)[0] ?? { program: "ufw", commandArguments: [] }).replace(/^sudo /, ""));
         if (rule.fromAddress) return finish(true, "Rule added");
         this.rules.push(toFirewallRule(0, ruleTo(rule).replace(/^(\S+)/, "$1 (v6)"), `${rule.action.toUpperCase()} ${direction}`, "Anywhere (v6)", rule.comment));
         return finish(true, "Rule added\nRule added (v6)");

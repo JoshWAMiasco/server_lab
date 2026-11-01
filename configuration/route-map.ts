@@ -13,5 +13,7 @@ export const ROUTE_MAP: readonly RouteMapEntry[] = [
   { routePath: "/apps", title: "Applications", groupName: "Monitor" },
   { routePath: "/watcher", title: "User Watcher", groupName: "Monitor" },
   { routePath: "/alerts", title: "Alerts", groupName: "Monitor" },
+  { routePath: "/security/firewall", title: "Firewall", groupName: "Security" },
+  { routePath: "/security/fail2ban", title: "fail2ban", groupName: "Security" },
   { routePath: "/settings", title: "Settings", groupName: "System" },
 ];

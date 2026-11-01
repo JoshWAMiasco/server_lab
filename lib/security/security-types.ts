@@ -102,6 +102,8 @@ export interface FirewallState {
   defaults: FirewallDefaults | null;
   logging: string | null;
   rules: FirewallRule[];
+  /** Saved rules from `ufw show added` (as `ufw …` commands). Listed even while the firewall is off. */
+  addedRules: string[];
 }
 
 export type SecurityHelperStatus = "ready" | "not-installed" | "failed" | "mock";

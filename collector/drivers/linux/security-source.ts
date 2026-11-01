@@ -60,7 +60,7 @@ async function readUnprivilegedState(helperMessage: string): Promise<SecuritySta
     checkedAt: Date.now(),
     helper: "not-installed",
     helperMessage,
-    firewall: hasUfw && ufwStatus ? { status: ufwStatus.status, defaults: ufwStatus.defaults, logging: ufwStatus.logging, rules: [] } : { status: hasUfw ? "unknown" : "not-installed", defaults: null, logging: null, rules: [] },
+    firewall: hasUfw && ufwStatus ? { status: ufwStatus.status, defaults: ufwStatus.defaults, logging: ufwStatus.logging, rules: [], addedRules: [] } : { status: hasUfw ? "unknown" : "not-installed", defaults: null, logging: null, rules: [], addedRules: [] },
     fail2ban: { status: hasFail2ban ? (fail2banActiveState === "active" ? "running" : "stopped") : "not-installed", version: null, jails: [] },
   };
 }
@@ -70,5 +70,13 @@ export async function readSecurityState(): Promise<SecurityState> {
   if (!(await isHelperInstalled())) return readUnprivilegedState(HELPER_MISSING_MESSAGE);
   const result = await runThroughHelper(`snapshot-${Date.now()}-${randomBytes(4).toString("hex")}`, { kind: "snapshot" });
   if (!result.isSuccessful) return { ...(await readUnprivilegedState(result.errorMessage ?? "The helper failed.")), helper: "failed" };
-  return { checkedAt: result.finishedAt, helper: "ready", helperMessage: null, firewall: buildFirewallState(result.steps), fail2ban: buildFail2banState(result.steps) };
+  const firewall = buildFirewallState(result.steps);
+  if (firewall.status === "inactive" && !firewall.defaults) {
+    /* `ufw status verbose` prints only "Status: inactive"; the policies that apply on enable are in the config files. */
+    const ufwConfiguration = await readTextFile("/etc/ufw/ufw.conf");
+    const fromFiles = ufwConfiguration === null ? null : parseUfwConfigurationFiles(ufwConfiguration, await readTextFile("/etc/default/ufw"));
+    firewall.defaults = fromFiles?.defaults ?? null;
+    firewall.logging = fromFiles?.logging ?? firewall.logging;
+  }
+  return { checkedAt: result.finishedAt, helper: "ready", helperMessage: null, firewall, fail2ban: buildFail2banState(result.steps) };
 }

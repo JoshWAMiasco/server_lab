@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { readFixture } from "./read-fixture";
-import { parseUfwConfigurationFiles, parseUfwStatusNumbered, parseUfwStatusVerbose } from "./parse-ufw-status";
+import { parseUfwConfigurationFiles, parseUfwShowAdded, parseUfwStatusNumbered, parseUfwStatusVerbose } from "./parse-ufw-status";
 
 describe("parseUfwStatusVerbose", () => {
   test("reads status, logging level and default policies", () => {
@@ -51,6 +51,13 @@ describe("parseUfwStatusNumbered", () => {
 
   test("an inactive firewall has no rules", () => {
     expect(parseUfwStatusNumbered(readFixture("ufw-status-inactive.txt"))).toEqual([]);
+  });
+});
+
+describe("parseUfwShowAdded", () => {
+  test("keeps the ufw command lines", () => {
+    expect(parseUfwShowAdded("Added user rules (see 'ufw status' for running firewall):\nufw allow 22/tcp\nufw allow in on tailscale0 comment 'tailnet'\n")).toEqual(["ufw allow 22/tcp", "ufw allow in on tailscale0 comment 'tailnet'"]);
+    expect(parseUfwShowAdded("(None)\n")).toEqual([]);
   });
 });
 

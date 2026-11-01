@@ -38,9 +38,9 @@ describe("createSecurityJob", () => {
     database.insert(hostActionRequests).values({ id, kind: (action as SecurityAction).kind ?? "unknown", action: action as SecurityAction, summary: "test", status, requestedAt: clock }).run();
   const rowOf = (id: string) => database.select().from(hostActionRequests).where(eq(hostActionRequests.id, id)).get();
 
-  test("publishes a snapshot on the first run, then only once a minute", async () => {
+  test("publishes a snapshot on the first run, then only once per interval", async () => {
     const driver = createCountingDriver();
-    const runJob = createSecurityJob(database, driver, { now: () => clock });
+    const runJob = createSecurityJob(database, driver, { now: () => clock, snapshotIntervalMilliseconds: 60_000 });
     await runJob();
     await runJob();
     expect(driver.counters.snapshots).toBe(1);

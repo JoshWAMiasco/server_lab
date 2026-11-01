@@ -1,4 +1,4 @@
-import { Activity, BarChart3, LayoutGrid, Settings, ShieldCheck, Siren } from "lucide-react";
+import { Activity, BarChart3, BrickWall, LayoutGrid, Settings, ShieldBan, ShieldCheck, Siren } from "lucide-react";
 import type { ReactNode } from "react";
 import { ToastViewport } from "@/components/interactive/toast-notification";
 import type { GlobalSearchResultGroup } from "@/components/layout-shell/global-search";
@@ -19,6 +19,8 @@ const SEARCH_SHORTCUTS = [
   { label: "Applications", href: "/apps", icon: <BarChart3 className="h-4 w-4 stroke-[1.3]" /> },
   { label: "User Watcher", href: "/watcher", icon: <ShieldCheck className="h-4 w-4 stroke-[1.3]" /> },
   { label: "Alerts", href: "/alerts", icon: <Siren className="h-4 w-4 stroke-[1.3]" /> },
+  { label: "Firewall", href: "/security/firewall", icon: <BrickWall className="h-4 w-4 stroke-[1.3]" /> },
+  { label: "fail2ban", href: "/security/fail2ban", icon: <ShieldBan className="h-4 w-4 stroke-[1.3]" /> },
   { label: "Settings", href: "/settings", icon: <Settings className="h-4 w-4 stroke-[1.3]" /> },
 ];
 

@@ -65,6 +65,17 @@ export function parseUfwStatusNumbered(text: string): FirewallRule[] {
 }
 
 /**
+ * Reads `ufw show added`: the saved rules as the `ufw …` commands that would recreate them. Unlike
+ * `ufw status`, it lists rules while the firewall is turned off.
+ */
+export function parseUfwShowAdded(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("ufw "));
+}
+
+/**
  * Reads `/etc/ufw/ufw.conf` and `/etc/default/ufw`, which are world-readable, for a basic status
  * when the root helper is not installed. `ENABLED=yes` is what `ufw enable` writes.
  */

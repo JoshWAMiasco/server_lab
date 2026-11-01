@@ -78,6 +78,7 @@ export function buildActionCommands(action: Exclude<SecurityAction, { kind: "sna
 export const SNAPSHOT_BASE_COMMANDS: readonly HostCommand[] = [
   { program: "ufw", commandArguments: ["status", "verbose"] },
   { program: "ufw", commandArguments: ["status", "numbered"] },
+  { program: "ufw", commandArguments: ["show", "added"] },
   { program: "fail2ban-client", commandArguments: ["version"] },
   { program: "fail2ban-client", commandArguments: ["status"] },
 ];

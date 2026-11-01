@@ -16,6 +16,12 @@ export function isRemoteAccessRule(rule: FirewallRule): boolean {
   return SSH_TARGET_PATTERN.test(rule.to) || TAILNET_INTERFACE_PATTERN.test(rule.to);
 }
 
+/** Whether a saved rule from `ufw show added` lets you back in (SSH or tailscale0). */
+export function isRemoteAccessCommand(command: string): boolean {
+  if (!/^ufw (allow|limit)\b/.test(command) || /\bout\b/.test(command.split(" from ")[0] ?? "")) return false;
+  return /\bon tailscale0\b/.test(command) || /\b(port 22|22\/tcp|22)(\s|$)/.test(command) || /\bOpenSSH\b/.test(command);
+}
+
 const isBlockingPolicy = (policy: string | undefined) => policy === undefined || policy === "deny" || policy === "reject";
 
 export interface LockoutCheck {
@@ -31,14 +37,15 @@ const NO_WAY_IN = "There is no rule allowing SSH (port 22) or the tailscale0 int
  */
 export function checkLockoutRisk(firewall: FirewallState, action: SecurityAction): LockoutCheck {
   const remoteAccessRules = firewall.rules.filter((rule) => isRemoteAccessRule(rule));
+  const hasSavedRemoteAccess = firewall.addedRules.some((command) => isRemoteAccessCommand(command));
   const blocksIncoming = isBlockingPolicy(firewall.defaults?.incoming);
   switch (action.kind) {
     case "firewall-enable": {
-      return blocksIncoming && remoteAccessRules.length === 0 ? { isRisky: true, reason: NO_WAY_IN } : SAFE;
+      return blocksIncoming && remoteAccessRules.length === 0 && !hasSavedRemoteAccess ? { isRisky: true, reason: NO_WAY_IN } : SAFE;
     }
     case "firewall-default": {
       if (action.direction !== "incoming" || action.policy === "allow" || firewall.status !== "active") return SAFE;
-      return remoteAccessRules.length === 0 ? { isRisky: true, reason: NO_WAY_IN } : SAFE;
+      return remoteAccessRules.length === 0 && !hasSavedRemoteAccess ? { isRisky: true, reason: NO_WAY_IN } : SAFE;
     }
     case "firewall-delete-rule": {
       const rule = firewall.rules.find((candidate) => candidate.number === action.ruleNumber);

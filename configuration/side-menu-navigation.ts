@@ -1,4 +1,4 @@
-import { Activity, BarChart3, LayoutGrid, Settings, ShieldCheck, Siren, type LucideIcon } from "lucide-react";
+import { Activity, BarChart3, BrickWall, LayoutGrid, Settings, ShieldBan, ShieldCheck, Siren, type LucideIcon } from "lucide-react";
 
 export interface SideMenuLinkEntry {
   entryKind: "link";
@@ -37,6 +37,9 @@ export function buildSideMenuNavigation({ firingAlertCount }: { firingAlertCount
     link("Applications", "/apps", BarChart3),
     link("User Watcher", "/watcher", ShieldCheck),
     link("Alerts", "/alerts", Siren, firingAlertCount > 0 ? String(firingAlertCount) : undefined),
+    divider("Security"),
+    link("Firewall", "/security/firewall", BrickWall),
+    link("fail2ban", "/security/fail2ban", ShieldBan),
     divider("System"),
     link("Settings", "/settings", Settings),
   ];

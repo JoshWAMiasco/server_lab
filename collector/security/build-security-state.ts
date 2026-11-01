@@ -1,6 +1,6 @@
 import { PROGRAM_NOT_FOUND_OUTPUT } from "@/host-action/execute-host-action";
 import { parseFail2banJailList, parseFail2banJailStatus, parseFail2banNumber, parseFail2banVersion } from "@/collector/parsers/parse-fail2ban-status";
-import { parseUfwStatusNumbered, parseUfwStatusVerbose } from "@/collector/parsers/parse-ufw-status";
+import { parseUfwShowAdded, parseUfwStatusNumbered, parseUfwStatusVerbose } from "@/collector/parsers/parse-ufw-status";
 import type { CommandStep, Fail2banState, FirewallState } from "@/lib/security/security-types";
 
 /*
@@ -14,10 +14,17 @@ const isMissing = (step: CommandStep | undefined) => step?.exitCode === null && 
 /** The firewall part of a snapshot. */
 export function buildFirewallState(steps: readonly CommandStep[]): FirewallState {
   const verboseStep = findStep(steps, "sudo ufw status verbose");
-  if (!verboseStep || isMissing(verboseStep)) return { status: verboseStep ? "not-installed" : "unknown", defaults: null, logging: null, rules: [] };
+  if (!verboseStep || isMissing(verboseStep)) return { status: verboseStep ? "not-installed" : "unknown", defaults: null, logging: null, rules: [], addedRules: [] };
   const verbose = parseUfwStatusVerbose(verboseStep.output);
   const numberedStep = findStep(steps, "sudo ufw status numbered");
-  return { status: verbose.status, defaults: verbose.defaults, logging: verbose.logging, rules: numberedStep?.exitCode === 0 ? parseUfwStatusNumbered(numberedStep.output) : [] };
+  const addedStep = findStep(steps, "sudo ufw show added");
+  return {
+    status: verbose.status,
+    defaults: verbose.defaults,
+    logging: verbose.logging,
+    rules: numberedStep?.exitCode === 0 ? parseUfwStatusNumbered(numberedStep.output) : [],
+    addedRules: addedStep?.exitCode === 0 ? parseUfwShowAdded(addedStep.output) : [],
+  };
 }
 
 /** The fail2ban part of a snapshot. A failing `fail2ban-client status` means the server is not running. */
