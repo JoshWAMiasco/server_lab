@@ -91,6 +91,8 @@ const pages = [
   ["/apps", "Total tracked"],
   ["/watcher?range=24h", "Logins over time"],
   ["/alerts", "Rules ("],
+  ["/security/firewall", "UFW rules and policies"],
+  ["/security/fail2ban", "Jails, banned addresses"],
   ["/settings", "Active sessions"],
 ];
 for (const [path, expectedText] of pages) {

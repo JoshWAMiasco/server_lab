@@ -20,7 +20,7 @@ export function PageHeader({ title, description, actions, className }: PageHeade
   return (
     <div className={mergeClassNames("flex flex-col gap-y-3 md:flex-row md:items-center", description ? "md:min-h-10" : "md:h-10", className)}>
       <div>
-        <div className="text-base font-medium font-display">{title}</div>
+        <h1 className="font-display text-base font-medium">{title}</h1>
         {description && <div className="mt-1 leading-relaxed text-foreground-muted">{description}</div>}
       </div>
       {actions && <div className="flex flex-col gap-x-3 gap-y-2 sm:flex-row md:ml-auto">{actions}</div>}

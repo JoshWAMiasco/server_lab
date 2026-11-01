@@ -50,3 +50,8 @@ next-env.d.ts
 
 # macOS metadata
 ._*
+
+# end-to-end tests
+/e2e/.auth/
+/playwright-report/
+/test-results/
