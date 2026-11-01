@@ -1,6 +1,7 @@
 import { joinClassNames } from "@/utilities/join-class-names";
 import Link from "next/link";
 import { THEME_IDENTITY } from "@/configuration/theme-identity";
+import { BrandMark } from "@/components/primitives/brand-mark";
 
 export interface BrandLogoClassNames {
   brandLink: string;
@@ -25,13 +26,7 @@ export function BrandLogo({
   brandName?: string;
   classNames: BrandLogoClassNames;
 }) {
-  const glyph = (
-    <div className={classNames.brandMarkGlyph}>
-      <div className="absolute inset-y-0 left-0 my-auto h-[75%] w-[21%] rounded-full opacity-50" />
-      <div className="absolute inset-0 m-auto h-[120%] w-[21%] rounded-full" />
-      <div className="absolute inset-y-0 right-0 my-auto h-[75%] w-[21%] rounded-full opacity-50" />
-    </div>
-  );
+  const glyph = <BrandMark className={classNames.brandMarkGlyph} />;
   return (
     <Link href={href} aria-label={`${brandName} home`} className={joinClassNames(classNames.brandLink)}>
       {classNames.brandMark ? <div className={classNames.brandMark}>{glyph}</div> : glyph}

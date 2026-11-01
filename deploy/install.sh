@@ -248,6 +248,9 @@ sync_code() {
     --exclude=/.git/ \
     --exclude=/data/ \
     --exclude=/coverage/ \
+    --exclude=/test-results/ \
+    --exclude=/playwright-report/ \
+    --exclude=/e2e/.auth/ \
     --exclude='/.env*' \
     "$SOURCE_DIR/" "$INSTALL_DIR/"
 }

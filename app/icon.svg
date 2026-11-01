@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="ServerLab">
+  <title>ServerLab</title>
+  <path d="M32 3 57 11V35L32 61 7 35V11Z" fill="#ff4655"/>
+  <g fill="#0a0a0b">
+    <rect x="19.5" y="23" width="6.5" height="17" rx="3.25" opacity=".55"/>
+    <rect x="28.75" y="15" width="6.5" height="31" rx="3.25"/>
+    <rect x="38" y="23" width="6.5" height="17" rx="3.25" opacity=".55"/>
+  </g>
+</svg>

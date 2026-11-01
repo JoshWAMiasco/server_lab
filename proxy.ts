@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const SESSION_COOKIE_NAME = "sl_session";
 const SESSION_COOKIE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
-const PUBLIC_PATH_PREFIXES = ["/login", "/setup", "/_next", "/favicon", "/catalog-icons"];
+const PUBLIC_PATH_PREFIXES = ["/login", "/setup", "/_next", "/favicon", "/icon.svg", "/apple-icon.png", "/catalog-icons"];
 
 /**
  * A cheap first gate: requests without a session cookie go to `/login`. It only checks that the

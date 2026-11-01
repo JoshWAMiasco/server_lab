@@ -28,8 +28,8 @@ export const SHELL_APPEARANCE: ShellAppearance = {
     brandLink:
       "hidden items-center transition-[margin] xl:flex xl:group-[.side-menu--collapsed.side-menu--on-hover]:ml-0 xl:group-[.side-menu--collapsed]:ml-2",
     brandMark:
-      "flex h-[34px] w-[34px] flex-none items-center justify-center bg-brand [clip-path:polygon(0_0,100%_0,100%_70%,70%_100%,0_100%)] transition-transform ease-in-out xl:group-[.side-menu--collapsed.side-menu--on-hover]:-rotate-180",
-    brandMarkGlyph: "relative h-[16px] w-[16px] -rotate-45 [&_div]:bg-on-primary",
+      "flex h-[34px] w-[34px] flex-none items-center justify-center drop-shadow-[0_0_10px_rgb(255_42_58_/_0.35)]",
+    brandMarkGlyph: "h-[34px] w-[34px]",
     brandName:
       "ml-3.5 font-display text-base font-bold uppercase tracking-[0.14em] text-foreground-strong transition-opacity xl:group-[.side-menu--collapsed.side-menu--on-hover]:opacity-100 xl:group-[.side-menu--collapsed]:opacity-0",
     compactMenuToggle:

@@ -31,23 +31,19 @@ if (!isDevelopmentServer && !fileSystem.existsSync(".next/BUILD_ID")) {
   process.exit(1);
 }
 
-/* Each child gets its own process group, so stopping it also stops anything it started. */
-const startChild = (program, programArguments) => spawn(path.join("node_modules", ".bin", program), programArguments, { env: environment, stdio: "inherit", detached: true });
+/*
+ * The binaries run directly (not through npx), so each child is the real process and forwards
+ * signals to anything it starts. They stay in this script's process group, which Playwright
+ * stops as a whole when the tests end.
+ */
+const startChild = (program, programArguments) => spawn(path.join("node_modules", ".bin", program), programArguments, { env: environment, stdio: "inherit" });
 const children = [startChild("tsx", ["collector/index.ts"]), startChild("next", [isDevelopmentServer ? "dev" : "start", "-H", "127.0.0.1", "-p", port])];
-
-const stopGroup = (child) => {
-  try {
-    process.kill(-child.pid, "SIGTERM");
-  } catch {
-    /* Already gone. */
-  }
-};
 
 let isStopping = false;
 const stop = (exitCode) => {
   if (isStopping) return;
   isStopping = true;
-  for (const child of children) stopGroup(child);
+  for (const child of children) child.kill("SIGTERM");
   setTimeout(() => {
     fileSystem.rmSync(dataDirectory, { recursive: true, force: true });
     process.exit(exitCode);

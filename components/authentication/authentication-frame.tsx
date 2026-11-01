@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BrandMark } from "@/components/primitives/brand-mark";
 import { mergeClassNames } from "@/utilities/merge-class-names";
 
 export interface AuthenticationFrameProps {
@@ -14,14 +15,8 @@ export interface AuthenticationFrameProps {
 
 function AuthenticationLogoMark() {
   return (
-    <div className="flex h-[55px] w-[55px] items-center justify-center rounded-box border border-primary/30">
-      <div className="relative flex h-[50px] w-[50px] items-center justify-center rounded-box bg-surface bg-linear-to-b from-brand/90 to-accent/90">
-        <div className="relative h-[26px] w-[26px] -rotate-45 [&_div]:bg-surface">
-          <div className="absolute inset-y-0 left-0 my-auto h-[75%] w-[20%] rounded-full opacity-50" />
-          <div className="absolute inset-0 m-auto h-[120%] w-[20%] rounded-full" />
-          <div className="absolute inset-y-0 right-0 my-auto h-[75%] w-[20%] rounded-full opacity-50" />
-        </div>
-      </div>
+    <div className="flex h-[55px] w-[55px] items-center justify-center">
+      <BrandMark title="ServerLab" className="h-[55px] w-[55px] drop-shadow-[0_0_14px_rgb(255_42_58_/_0.4)]" />
     </div>
   );
 }

@@ -8,6 +8,14 @@ test("a fresh install sends every page to /setup", async ({ page }) => {
   await expect(page).toHaveURL(/\/setup/);
 });
 
+test("the app icons load without signing in", async ({ request }) => {
+  for (const [path, contentType] of [["/icon.svg", "image/svg+xml"], ["/apple-icon.png", "image/png"], ["/favicon.ico", "image/"]] as const) {
+    const response = await request.get(path, { maxRedirects: 0 });
+    expect(response.status(), path).toBe(200);
+    expect(response.headers()["content-type"], path).toContain(contentType);
+  }
+});
+
 test("setup rejects a wrong token", async ({ page }) => {
   await page.goto("/setup");
   await page.fill("#field-setupToken", "not-the-token");
