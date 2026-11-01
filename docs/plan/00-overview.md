@@ -1,7 +1,7 @@
 # 00 — ServerLab Overview
 
 > Status: **v1 implemented** (2026-10-25). Built and tested on macOS with the mock driver; the Linux driver has not run on a real Ubuntu host yet. Deviations from these plans are logged at the end of the decision log.
-> Source spec: `/Users/joshua/Documents/AJF/Projects/server_lab/spec.md` (read-only).
+> Source spec: `spec.md` in the repository root (read-only).
 
 ## Vision
 ServerLab is a small, Grafana-like dashboard for **one homelab server**. It answers four questions quickly:
@@ -37,7 +37,7 @@ It is meant to look good and need no setup. It is not a general observability pl
 ## Decision log
 | Date | Decision | Why |
 |------|----------|-----|
-| 2026-10-23 | Project lives at `/Users/joshua/Documents/AJF/Projects/server_lab` (next to `spec.md`; plans in `docs/plan/`) | User moved it here (overrides the spec's `AJF/server_lab`) |
+| 2026-10-23 | Project lives in its own repository (next to `spec.md`; plans in `docs/plan/`) | Keeps the plan next to the code |
 | 2026-10-23 | Template `next-web-template-red-alert` is only copied from, never edited | Spec |
 | 2026-10-23 | Runs **on the monitored host**, monitors one server | Simplest; no agent protocol to secure |
 | 2026-10-23 | GPU support: NVIDIA, AMD, Intel, or none, detected at runtime | User's hardware varies |

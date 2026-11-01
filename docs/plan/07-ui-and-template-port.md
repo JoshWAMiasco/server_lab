@@ -1,6 +1,6 @@
 # 07 — UI, Pages and Template Port
 
-Template (read-only): `/Users/joshua/Documents/AJF/next-web-template-red-alert` (`$T` below).
+Template (read-only, private): the `next-web-template-red-alert` Next.js template (`$T` below).
 Base: Next 16.4 App Router · React 19 · TS strict · Tailwind 4 (`@theme` CSS) · npm · Node 22.
 **Theme decision:** the full red-alert look is kept with all decorations (hazard stripes, HUD brackets, glow, grid backdrop).
 
