@@ -1,6 +1,6 @@
 {
   "name": "server-lab",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "ServerLab: a small, Grafana-like dashboard for one homelab server, with firewall and fail2ban pages that teach the CLI.",
   "license": "MIT",

@@ -18,7 +18,7 @@ import { loginEvents } from "@/lib/schema/watcher";
 import { storeLoginEvent } from "@/lib/watcher/login-event-store";
 import { readEnvironment } from "@/lib/environment";
 
-const COLLECTOR_VERSION = "0.1.0";
+const COLLECTOR_VERSION = "1.0.0";
 const SAMPLE_INTERVAL_MILLISECONDS = Math.max(1000, Number(readEnvironment("SAMPLE_INTERVAL_MS") ?? 2000));
 const JOURNAL_CURSOR_KEY = "watcher.journalCursor";
 const BACKFILL_STATE_KEY = "watcher.backfill";
