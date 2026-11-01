@@ -2,7 +2,17 @@
   "name": "server-lab",
   "version": "0.1.0",
   "private": true,
-  "description": "ServerLab: a minimalist, Grafana-like dashboard for one homelab server.",
+  "description": "ServerLab: a small, Grafana-like dashboard for one homelab server, with firewall and fail2ban pages that teach the CLI.",
+  "license": "MIT",
+  "author": "Joshua Miasco",
+  "homepage": "https://github.com/JoshWAMiasco/server_lab#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JoshWAMiasco/server_lab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoshWAMiasco/server_lab/issues"
+  },
   "scripts": {
     "dev": "concurrently -k -n web,collector -c red,yellow \"npm:dev:web\" \"npm:dev:collector\"",
     "dev:web": "next dev",

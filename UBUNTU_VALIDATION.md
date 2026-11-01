@@ -3,7 +3,7 @@
 **For:** Claude Code, running on the Ubuntu Server host where ServerLab will live (or a disposable Ubuntu VM).
 **Goal:** find out what actually works on real Linux, then find and fix bugs and security problems. Produce a written report.
 
-Read `CLAUDE.md` (conventions, enforced by `npm run lint`), `README.md` and `docs/HARDENING.md` before you start. `spec.md` is read-only. The design lives in `docs/plan/`; its decision log (`docs/plan/00-overview.md`) records where the build deviates from the plan.
+Read `CONTRIBUTING.md` (conventions, enforced by `npm run lint`), `README.md` and `docs/HARDENING.md` before you start. `spec.md` is read-only. The design lives in `docs/plan/`; its decision log (`docs/plan/00-overview.md`) records where the build deviates from the plan.
 
 ---
 

@@ -178,7 +178,7 @@ export class MockDriver implements CollectorDriver {
   }
 
   readHostname(): string {
-    return `${operatingSystem.hostname().split(".")[0]} (mock)`;
+    return `${process.env.MOCK_HOSTNAME || operatingSystem.hostname().split(".")[0]} (mock)`;
   }
 
   overrideGeolocation(ipAddress: string): GeolocationResult | null {

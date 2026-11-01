@@ -1,7 +1,7 @@
 # ServerLab validation report — 2026-10-25, Ubuntu desktop (HP laptop), Ubuntu 26.04.1 LTS
 
 ## Summary
-_In progress._
+The first round (2026-10-25, below) validated the build, the Linux driver and the web UI on a real host and fixed the security findings. The second round (2026-11-01, at the end) covers the mobile menu, the Firewall and fail2ban pages and the new end-to-end suite.
 
 ## Environment
 | Item | Value |
@@ -17,7 +17,7 @@ _In progress._
 | OpenSSH | OpenSSH_10.2p1 Ubuntu-2ubuntu3.6 (sshd installed, `ssh.service` inactive) |
 | Docker | daemon active; admin user is not in the `docker` group |
 | nginx | not running |
-| Tailscale | running, 100.126.119.91 |
+| Tailscale | running (tailnet address omitted) |
 | Listeners at start | 127.0.0.53/54:53 (resolved), 127.0.0.1:5432 (PostgreSQL), 127.0.0.1:631 + [::1]:631 (CUPS), Tailscale IP high ports (tailscaled) |
 | Login sources | journal (no sshd entries yet), `/var/log/auth.log` (empty, `syslog:adm 640`), `/var/log/wtmp` + `/var/log/btmp` present, **`last`/`lastb`/`wtmpdb` not installed** |
 
@@ -80,3 +80,32 @@ Starting state of the copy: the project was copied from macOS. It contained 1,68
 ## Open items for the user
 - **Finding 11:** to make the client IP unspoofable for local processes, nginx would send a secret header (`proxy_set_header X-ServerLab-Proxy <secret>`) that the app checks against the env file. Changes `install.sh` and the nginx site. Decide whether that threat (local process / host-network container) matters for you.
 - **Finding 8:** add a `local` network tag for loopback logins?
+
+---
+
+# Round 2 — 2026-11-01: mobile menu, Firewall and fail2ban pages, end-to-end tests
+
+Same host (Ubuntu 26.04.1 LTS). UFW is installed but **not enabled** (`/etc/ufw/ufw.conf`: `ENABLED=no`; the `ufw` systemd unit reports "active" only because it is a one-shot boot script). fail2ban is not installed.
+
+## Results
+| # | Check | Result | Notes |
+|---|---|---|---|
+| 1 | `npm run lint` | pass | |
+| 2 | `npm run type-check` | pass | |
+| 3 | `npm test` | pass | 456 tests (was 332): new parsers for `ufw status` / `ufw show added` / `fail2ban-client`, command builders, validation (injection strings, CIDR, ports), lockout guard, the root helper (symlinks, file ownership, bad JSON, request id mismatch), the collector job |
+| 4 | `npm run build` | pass | web app, collector, and the self-contained root helper (`dist/host-action/index.js`, only Node built-ins) |
+| 5 | `npm run test:e2e` (Playwright, Chromium 1248) | pass | 37 tests: setup and sign-in, 8 pages × desktop and Pixel 7 (no console errors, no sideways scroll), SSE, mobile drawer, firewall add/delete/lockout, fail2ban ban/unban |
+| 6 | Root helper refuses to run as non-root | pass | `node dist/host-action/index.js` exits 1 |
+| 7 | Root helper on the real host (`install.sh`, polkit, real `ufw`/`fail2ban-client`) | **not yet run** | needs sudo; see "Open items" |
+
+## Findings
+| # | Severity | Finding | Fix |
+|---|---|---|---|
+| R2-1 | High (mobile) | The mobile menu backdrop was a CSS pseudo-element, so tapping outside the menu did nothing; links did not close it; every `resize` (fired by mobile address bars while scrolling) closed it; no Escape, scroll lock or focus trap | Headless UI dialog drawer below 1280px; closes on tap outside, link, close button, Escape and route change |
+| R2-2 | Medium (mobile) | Top bar, Lobby group tabs and chart headers overflowed 390px screens (sideways scrolling) | Responsive classes; breadcrumb hidden below 768px |
+| R2-3 | Low (a11y) | Page titles were `<div>`s: pages had no heading | `PageHeader` renders an `<h1>` |
+| R2-4 | Low | A `sr-only` table heading escaped its scroll container and widened the page on phones | Scroll container is `relative` |
+
+## Open items for the user
+- Re-run `sudo deploy/install.sh` to install the helper (unit, polkit rule, tmpfiles), then check the Firewall page against `sudo ufw status numbered` and `sudo ufw show added`.
+- Optional: `sudo apt install fail2ban`, then check the fail2ban page against `sudo fail2ban-client status sshd`, and ban/unban a documentation address (`198.51.100.77`) from the page.

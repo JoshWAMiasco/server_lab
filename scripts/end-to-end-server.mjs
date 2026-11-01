@@ -31,16 +31,23 @@ if (!isDevelopmentServer && !fileSystem.existsSync(".next/BUILD_ID")) {
   process.exit(1);
 }
 
-const children = [
-  spawn("npx", ["tsx", "collector/index.ts"], { env: environment, stdio: "inherit" }),
-  spawn("npx", ["next", isDevelopmentServer ? "dev" : "start", "-H", "127.0.0.1", "-p", port], { env: environment, stdio: "inherit" }),
-];
+/* Each child gets its own process group, so stopping it also stops anything it started. */
+const startChild = (program, programArguments) => spawn(path.join("node_modules", ".bin", program), programArguments, { env: environment, stdio: "inherit", detached: true });
+const children = [startChild("tsx", ["collector/index.ts"]), startChild("next", [isDevelopmentServer ? "dev" : "start", "-H", "127.0.0.1", "-p", port])];
+
+const stopGroup = (child) => {
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    /* Already gone. */
+  }
+};
 
 let isStopping = false;
 const stop = (exitCode) => {
   if (isStopping) return;
   isStopping = true;
-  for (const child of children) child.kill("SIGTERM");
+  for (const child of children) stopGroup(child);
   setTimeout(() => {
     fileSystem.rmSync(dataDirectory, { recursive: true, force: true });
     process.exit(exitCode);
