@@ -1,10 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { joinClassNames } from "@/utilities/join-class-names";
 
 const COMPACT_MENU_STORAGE_KEY = "compactMenu";
-const AUTOMATIC_COMPACT_MAXIMUM_WIDTH = 1600;
+const AUTOMATIC_COMPACT_MEDIA_QUERY = "(max-width: 1600px)";
+const DESKTOP_MENU_MEDIA_QUERY = "(min-width: 1280px)";
+
+/** The id of the mobile drawer panel, so the hamburger button can point at it with `aria-controls`. */
+export const MOBILE_MENU_DRAWER_ID = "mobile-menu-drawer";
 
 interface SideMenuStateContextValue {
   isCollapsed: boolean;
@@ -19,8 +24,9 @@ interface SideMenuStateContextValue {
 const SideMenuStateContext = createContext<SideMenuStateContextValue | null>(null);
 
 /**
- * Holds the side menu's collapsed, hover and mobile-open states, remembered in localStorage like
- * the template (collapsed by default, and always collapsed at 1600px wide or less). Wrap both
+ * Holds the side menu's collapsed, hover and mobile-open states. The collapsed state is remembered
+ * in localStorage (collapsed by default, and always collapsed at 1600px wide or less). The mobile
+ * drawer closes when the route changes or the window grows past 1280px. Wrap both
  * `SideMenuFrame` and `PageContentFrame` with it.
  *
  * @example
@@ -34,18 +40,31 @@ export function SideMenuStateProvider({ children }: { children: ReactNode }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const currentPathname = usePathname();
+  const [menuPathname, setMenuPathname] = useState(currentPathname);
+  if (menuPathname !== currentPathname) {
+    setMenuPathname(currentPathname);
+    setIsMobileMenuOpen(false);
+  }
+
   useEffect(() => {
     const storedPreference = localStorage.getItem(COMPACT_MENU_STORAGE_KEY);
-    queueMicrotask(() => setIsCollapsed(storedPreference === null || storedPreference === "true"));
-    const handleResize = () => {
-      setIsMobileMenuOpen(false);
-      if (window.innerWidth <= AUTOMATIC_COMPACT_MAXIMUM_WIDTH) {
-        localStorage.setItem(COMPACT_MENU_STORAGE_KEY, "true");
-        setIsCollapsed(true);
-      }
+    const automaticCompactQuery = window.matchMedia(AUTOMATIC_COMPACT_MEDIA_QUERY);
+    const desktopMenuQuery = window.matchMedia(DESKTOP_MENU_MEDIA_QUERY);
+    queueMicrotask(() => setIsCollapsed(automaticCompactQuery.matches || storedPreference === null || storedPreference === "true"));
+    /* Mobile browsers fire `resize` while the address bar shows and hides, so react only when a breakpoint is crossed. */
+    const handleAutomaticCompactChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsCollapsed(true);
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const handleDesktopMenuChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setIsMobileMenuOpen(false);
+    };
+    automaticCompactQuery.addEventListener("change", handleAutomaticCompactChange);
+    desktopMenuQuery.addEventListener("change", handleDesktopMenuChange);
+    return () => {
+      automaticCompactQuery.removeEventListener("change", handleAutomaticCompactChange);
+      desktopMenuQuery.removeEventListener("change", handleDesktopMenuChange);
+    };
   }, []);
 
   const toggleCollapsed = useCallback(() => {
@@ -154,29 +173,18 @@ export function CompactMenuToggle({ className, children }: { className?: string;
  * <MobileMenuOpenButton className="rounded-full p-2 hover:bg-surface-muted"><AlignJustify className="h-[18px] w-[18px] stroke-[1]" /></MobileMenuOpenButton>
  */
 export function MobileMenuOpenButton({ className, children }: { className?: string; children: ReactNode }) {
-  const { openMobileMenu } = useSideMenuState();
+  const { isMobileMenuOpen, openMobileMenu } = useSideMenuState();
   return (
-    <button type="button" aria-label="Open menu" onClick={openMobileMenu} className={joinClassNames("open-mobile-menu cursor-pointer", className)}>
+    <button
+      type="button"
+      aria-label="Open menu"
+      aria-expanded={isMobileMenuOpen}
+      aria-controls={MOBILE_MENU_DRAWER_ID}
+      onClick={openMobileMenu}
+      className={joinClassNames("open-mobile-menu cursor-pointer", className)}
+    >
       {children}
     </button>
-  );
-}
-
-/**
- * The close button shown beside the open mobile menu. The theme's classes show it through
- * `[&.close-mobile-menu--mobile-menu-open]:flex`.
- *
- * @example
- * <MobileMenuCloseButton className={SHELL_APPEARANCE.classNames.closeMobileMenu}><X className="h-8 w-8 stroke-[1] text-on-primary" /></MobileMenuCloseButton>
- */
-export function MobileMenuCloseButton({ className, children }: { className?: string; children: ReactNode }) {
-  const { isMobileMenuOpen, closeMobileMenu } = useSideMenuState();
-  return (
-    <div className={joinClassNames("close-mobile-menu", className, isMobileMenuOpen && "close-mobile-menu--mobile-menu-open")}>
-      <button type="button" aria-label="Close menu" onClick={closeMobileMenu} className="mt-5 ml-5 cursor-pointer">
-        {children}
-      </button>
-    </div>
   );
 }
 

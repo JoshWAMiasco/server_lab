@@ -1,7 +1,8 @@
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { BrandLogo } from "@/components/layout-shell/brand-logo";
 import type { ShellAppearance } from "@/components/layout-shell/shell-appearance";
-import { CompactMenuToggle, HoverableSideMenuContent, MobileMenuCloseButton } from "@/components/layout-shell/side-menu-state";
+import { MobileSideMenuDrawer } from "@/components/layout-shell/mobile-side-menu-drawer";
+import { CompactMenuToggle, HoverableSideMenuContent } from "@/components/layout-shell/side-menu-state";
 import { SideMenuGroup, SideMenuLink } from "@/components/layout-shell/side-menu-link";
 import type { SideMenuEntry, SideMenuLinkEntry } from "@/configuration/side-menu-navigation";
 
@@ -43,7 +44,8 @@ function SideMenuNavigation({ navigation, className }: { navigation: readonly Si
 
 /**
  * The side menu: dividers, links and collapsible groups from `navigation`, in the theme's
- * layout (`appearance.layoutVariant`). In `side-menu-with-brand` themes it also holds the logo and
+ * layout (`appearance.layoutVariant`). From 1280px it is a fixed column; below that the same
+ * navigation opens in `MobileSideMenuDrawer`. In `side-menu-with-brand` themes it also holds the logo and
  * the collapse toggle. Server component; only the active-link highlight and group toggles run on
  * the client.
  *
@@ -52,17 +54,20 @@ function SideMenuNavigation({ navigation, className }: { navigation: readonly Si
  */
 export function SideMenu({ navigation, appearance, homeHref = "/" }: { navigation: readonly SideMenuEntry[]; appearance: ShellAppearance; homeHref?: string }) {
   const { classNames } = appearance;
-  const closeButton = (
-    <MobileMenuCloseButton className={classNames.closeMobileMenu}>
-      <X className="h-8 w-8 stroke-[1] text-on-primary" />
-    </MobileMenuCloseButton>
-  );
   const menuNavigation = <SideMenuNavigation navigation={navigation} className={classNames.sideMenuNavigation} />;
+  const mobileDrawer = (
+    <MobileSideMenuDrawer
+      header={<BrandLogo href={homeHref} classNames={{ ...classNames, brandLink: classNames.mobileDrawerBrandLink }} />}
+      classNames={{ panel: classNames.mobileDrawerPanel, header: classNames.mobileDrawerHeader, closeButton: classNames.mobileDrawerCloseButton }}
+    >
+      <SideMenuNavigation navigation={navigation} className={classNames.sideMenuNavigation} />
+    </MobileSideMenuDrawer>
+  );
 
   if (appearance.layoutVariant === "side-menu-with-brand") {
     return (
       <>
-        {closeButton}
+        {mobileDrawer}
         <HoverableSideMenuContent className={classNames.sideMenuContent}>
           <div className={classNames.brandArea}>
             <BrandLogo href={homeHref} classNames={classNames} />
@@ -77,18 +82,11 @@ export function SideMenu({ navigation, appearance, homeHref = "/" }: { navigatio
   }
 
   return (
-    <HoverableSideMenuContent className={classNames.sideMenuContent}>
-      {classNames.sideMenuPanel ? (
-        <div className={classNames.sideMenuPanel}>
-          {closeButton}
-          {menuNavigation}
-        </div>
-      ) : (
-        <>
-          {closeButton}
-          {menuNavigation}
-        </>
-      )}
-    </HoverableSideMenuContent>
+    <>
+      {mobileDrawer}
+      <HoverableSideMenuContent className={classNames.sideMenuContent}>
+        {classNames.sideMenuPanel ? <div className={classNames.sideMenuPanel}>{menuNavigation}</div> : menuNavigation}
+      </HoverableSideMenuContent>
+    </>
   );
 }

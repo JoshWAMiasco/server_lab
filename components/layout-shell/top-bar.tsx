@@ -65,9 +65,11 @@ export function TopBar({ appearance, homeHref = "/", liveStatus, alertEvents, se
       <div className="flex flex-1 items-center">
         <div className={classNames.actionButtons}>
           <CollectorStatus initialStatus={liveStatus} />
-          <FullScreenButton className={classNames.actionButton}>
-            <Expand className={classNames.actionIcon} />
-          </FullScreenButton>
+          <div className="hidden sm:flex">
+            <FullScreenButton className={classNames.actionButton}>
+              <Expand className={classNames.actionIcon} />
+            </FullScreenButton>
+          </div>
           <NotificationsPanel initialEvents={alertEvents} triggerClassName={classNames.actionButton} iconClassName={classNames.actionIcon} />
         </div>
         <AccountMenu avatarClassName={classNames.accountAvatarButton} />

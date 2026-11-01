@@ -32,7 +32,10 @@ export interface ShellClassNames {
   actionButton: string;
   actionIcon: string;
   accountAvatarButton: string;
-  closeMobileMenu: string;
+  mobileDrawerPanel: string;
+  mobileDrawerHeader: string;
+  mobileDrawerBrandLink: string;
+  mobileDrawerCloseButton: string;
   sideMenuContent: string;
   sideMenuPanel: string;
   sideMenuNavigation: string;

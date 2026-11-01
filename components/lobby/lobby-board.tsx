@@ -155,9 +155,9 @@ export function LobbyBoard({ cards, hostname, referenceTimestamp, iconChoices, c
       </div>
 
       <div className="mt-6 flex flex-col gap-3 xl:flex-row xl:items-center">
-        <div className="flex border border-line bg-surface p-0.5" role="tablist" aria-label="Item group">
+        <div className="flex max-w-full self-start overflow-x-auto border border-line bg-surface p-0.5" role="tablist" aria-label="Item group">
           {GROUP_FILTERS.map((filter) => (
-            <button key={filter.value} type="button" role="tab" aria-selected={groupFilter === filter.value} onClick={() => setGroupFilter(filter.value)} className={mergeClassNames("cursor-pointer px-3.5 py-1.5 text-foreground-muted transition-colors", groupFilter === filter.value ? "bg-brand text-on-primary" : "hover:text-foreground")}>
+            <button key={filter.value} type="button" role="tab" aria-selected={groupFilter === filter.value} onClick={() => setGroupFilter(filter.value)} className={mergeClassNames("flex-none cursor-pointer px-3.5 py-1.5 whitespace-nowrap text-foreground-muted transition-colors", groupFilter === filter.value ? "bg-brand text-on-primary" : "hover:text-foreground")}>
               {filter.label}
             </button>
           ))}
