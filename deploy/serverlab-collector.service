@@ -28,9 +28,11 @@ TimeoutStopSec=20
 UMask=0077
 
 ReadWritePaths=/var/lib/serverlab
+# Firewall and fail2ban requests for the root helper (deploy/serverlab-host-action.tmpfiles).
+ReadWritePaths=-/run/serverlab-host-action/inbox
 
-# Sandbox. Everything outside /var/lib/serverlab is read-only, including /var/log/btmp and
-# /run/utmp, so membership in the utmp group gives read access only.
+# Sandbox. Everything outside /var/lib/serverlab and the host-action inbox is read-only,
+# including /var/log/btmp and /run/utmp, so membership in the utmp group gives read access only.
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

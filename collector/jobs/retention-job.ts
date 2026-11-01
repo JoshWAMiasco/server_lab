@@ -31,6 +31,7 @@ export function runRetention(database: ServerLabDatabase, now = Date.now()): voi
   deleteInBatches(database, "DELETE FROM metric_rollups WHERE rowid IN (SELECT rowid FROM metric_rollups WHERE resolution = '1h' AND bucket_ts < ? LIMIT ?)", now - retention.hourRollupDays * DAY_MILLISECONDS);
   deleteInBatches(database, "DELETE FROM login_events WHERE id IN (SELECT id FROM login_events WHERE ts < ? LIMIT ?)", now - retention.loginDays * DAY_MILLISECONDS);
   deleteInBatches(database, "DELETE FROM alert_events WHERE id IN (SELECT id FROM alert_events WHERE state = 'resolved' AND started_at < ? LIMIT ?)", now - retention.alertDays * DAY_MILLISECONDS);
+  deleteInBatches(database, "DELETE FROM host_action_requests WHERE id IN (SELECT id FROM host_action_requests WHERE status IN ('done', 'failed') AND requested_at < ? LIMIT ?)", now - retention.alertDays * DAY_MILLISECONDS);
   database.$client.prepare("DELETE FROM sessions WHERE expires_at < ?").run(now);
   pruneUnusedCustomIcons(database, now);
   database.$client.pragma("incremental_vacuum");

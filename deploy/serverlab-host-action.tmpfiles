@@ -1,0 +1,8 @@
+# Exchange directories between serverlab-collector (user serverlab) and the root helper in
+# serverlab-host-action.service. Installed as /etc/tmpfiles.d/serverlab-host-action.conf and
+# recreated at every boot. The parent belongs to root so serverlab cannot swap the directories
+# for symlinks; serverlab may only add files to inbox/ (sticky) and read outbox/ (setgid keeps
+# results in the serverlab group).
+d /run/serverlab-host-action        0755 root root      -
+d /run/serverlab-host-action/inbox  1770 root serverlab -
+d /run/serverlab-host-action/outbox 2750 root serverlab -

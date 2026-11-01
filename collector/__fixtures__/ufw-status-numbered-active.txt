@@ -1,0 +1,13 @@
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 22/tcp                     ALLOW IN    Anywhere
+[ 2] Anywhere on tailscale0     ALLOW IN    Anywhere                   # tailnet
+[ 3] 8443                       DENY IN     192.168.1.0/24
+[ 4] 6000:6007/tcp              LIMIT IN    203.0.113.0/24             # x11 lab
+[ 5] 53                         ALLOW OUT   Anywhere on eth0           (out)
+[ 6] 22/tcp (v6)                ALLOW IN    Anywhere (v6)
+[ 7] Anywhere (v6) on tailscale0 ALLOW IN    Anywhere (v6)              # tailnet
+[10] 443/tcp                    REJECT IN   Anywhere
+

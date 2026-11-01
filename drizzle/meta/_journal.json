@@ -15,6 +15,13 @@
       "when": 1792902975830,
       "tag": "0001_custom_icons",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793529767994,
+      "tag": "0002_host_action_requests",
+      "breakpoints": true
     }
   ]
 }

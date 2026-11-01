@@ -1,0 +1,9 @@
+// Lets ServerLab's collector (user serverlab) start exactly one systemd unit,
+// serverlab-host-action.service, which runs the queued ufw / fail2ban-client commands as root
+// (deploy/serverlab-host-action.service). No other unit, and no stop/restart/edit.
+// Installed by deploy/install.sh; removed by install.sh --uninstall.
+polkit.addRule(function (action, subject) {
+  if (action.id !== "org.freedesktop.systemd1.manage-units" || subject.user !== "serverlab") return polkit.Result.NOT_HANDLED;
+  if (action.lookup("verb") === "start" && action.lookup("unit") === "serverlab-host-action.service") return polkit.Result.YES;
+  return polkit.Result.NOT_HANDLED;
+});

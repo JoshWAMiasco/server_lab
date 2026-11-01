@@ -1,0 +1,33 @@
+# Runs firewall (ufw) and fail2ban commands that the ServerLab Firewall and fail2ban pages queued.
+# serverlab-collector writes each request to /run/serverlab-host-action/inbox/ and starts this unit;
+# the polkit rule deploy/polkit/61-serverlab-host-action.rules lets the serverlab user start exactly
+# this unit and nothing else. The helper (host-action/ in the source, copied root-owned to
+# /usr/local/libexec/serverlab/host-action.js by install.sh) validates every request again, runs
+# only ufw and fail2ban-client with fixed argument shapes and no shell, writes results to
+# /run/serverlab-host-action/outbox/ and exits. See docs/HARDENING.md §6.
+
+[Unit]
+Description=ServerLab: run queued firewall and fail2ban changes
+Documentation=file:/opt/serverlab/docs/HARDENING.md
+ConditionPathIsDirectory=/run/serverlab-host-action/inbox
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/env node /usr/local/libexec/serverlab/host-action.js
+TimeoutStartSec=5min
+
+# ufw writes /etc/ufw and /etc/default/ufw, loads iptables/nftables rules and applies
+# /etc/ufw/sysctl.conf; fail2ban-client talks to /run/fail2ban/fail2ban.sock. Capabilities and
+# kernel tunables are therefore left alone; everything else that can be locked down is.
+NoNewPrivileges=yes
+ProtectSystem=full
+ReadWritePaths=/etc/ufw /etc/default -/lib/ufw
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelLogs=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6

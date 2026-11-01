@@ -1,4 +1,5 @@
 import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
+import type { HostActionResult, SecurityAction, SecurityState } from "@/lib/security/security-types";
 import type { GeolocationResult } from "@/lib/watcher/geolocation";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, GpuDevice, ParsedLoginEvent, SystemSample } from "@/collector/types";
 
@@ -45,6 +46,10 @@ export interface CollectorDriver {
   readGpuPowerState?(): Promise<GpuPowerState>;
   /** Switches the NVIDIA GPU's PRIME mode (applies after a reboot). Returns an error message, or null. */
   switchGpuPowerMode?(mode: GpuPowerMode): Promise<string | null>;
+  /** UFW and fail2ban state for the Firewall and fail2ban pages (through the root helper when installed). */
+  readSecurityState?(): Promise<SecurityState>;
+  /** Carries out one validated firewall or fail2ban change through the root helper. */
+  runSecurityAction?(requestId: string, action: Exclude<SecurityAction, { kind: "snapshot" }>): Promise<HostActionResult>;
   /** Mock only: a fake location for an IP, since development machines have no GeoIP database. */
   overrideGeolocation?(ipAddress: string): GeolocationResult | null;
 }

@@ -4,6 +4,7 @@ import { AlertEngine, seedDefaultAlertRules } from "@/collector/alerts/alert-eng
 import { writeDiscoveredItems } from "@/collector/discovery/discovery-writer";
 import { createGpuPowerJob } from "@/collector/jobs/gpu-power-job";
 import { runManualHealthChecks } from "@/collector/jobs/manual-health-job";
+import { createSecurityJob } from "@/collector/jobs/security-job";
 import { runRetention } from "@/collector/jobs/retention-job";
 import { runFullRollups, runRollups } from "@/collector/jobs/rollup-job";
 import { runEvery } from "@/collector/scheduler";
@@ -134,6 +135,7 @@ async function main() {
     runEvery("tls certificate", 60 * 60_000, () => alertEngine.checkTlsCertificate()),
     runEvery("notification tests", 3000, () => alertEngine.processTestRequest()),
     runEvery("gpu power", 3000, createGpuPowerJob(database, driver)),
+    runEvery("firewall and fail2ban", 3000, createSecurityJob(database, driver)),
   ];
 
   const backfillState = readSetting<{ state: "running" | "done"; count: number } | null>(database, BACKFILL_STATE_KEY, null);

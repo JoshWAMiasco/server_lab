@@ -11,6 +11,7 @@ import { readListeners, resolveListenerOwner, toPortItems, type ListenerOwner } 
 import { LoginSource } from "@/collector/drivers/linux/login-source";
 import { NginxSource, toNginxItems } from "@/collector/drivers/linux/nginx-source";
 import { isProgramAvailable } from "@/collector/drivers/linux/run-command";
+import { readSecurityState, runThroughHelper } from "@/collector/drivers/linux/security-source";
 import { SystemReader } from "@/collector/drivers/linux/system-source";
 import { readSystemdUnits, toSystemdItems } from "@/collector/drivers/linux/systemd-source";
 import { mapTailnetDevices, readMagicDnsName, readPeerApiPorts, readTailscaleStatus } from "@/collector/drivers/linux/tailscale-source";
@@ -19,6 +20,7 @@ import { isDockerAvailable } from "@/collector/sources/docker-client";
 import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ListeningSocket, ParsedLoginEvent, SystemSample } from "@/collector/types";
 import { matchCatalogEntry } from "@/lib/catalog/catalog";
 import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
+import type { HostActionResult, SecurityAction, SecurityState } from "@/lib/security/security-types";
 import { readEnvironment } from "@/lib/environment";
 
 const SERVERLAB_WEB_PORT = 3000;
@@ -143,6 +145,14 @@ export class LinuxDriver implements CollectorDriver {
 
   switchGpuPowerMode(mode: GpuPowerMode): Promise<string | null> {
     return switchGpuPowerMode(mode);
+  }
+
+  readSecurityState(): Promise<SecurityState> {
+    return readSecurityState();
+  }
+
+  runSecurityAction(requestId: string, action: Exclude<SecurityAction, { kind: "snapshot" }>): Promise<HostActionResult> {
+    return runThroughHelper(requestId, action);
   }
 
   readWarnings(): string[] {

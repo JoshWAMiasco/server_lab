@@ -289,7 +289,7 @@ sudo systemctl daemon-reload && sudo systemctl restart serverlab-collector
 ### NVIDIA GPU power switch (hybrid-graphics laptops)
 On hosts with `prime-select` (package `nvidia-prime`), `install.sh` adds Settings → **NVIDIA GPU power**. "Turn off" selects the PRIME `intel` profile: after the next reboot the desktop runs on the Intel GPU and the NVIDIA GPU is powered down. Older NVIDIA GPUs (before Turing) cannot power down by themselves, so this is the only way to stop them drawing power. "Turn on" selects `on-demand` again.
 
-This is the one place where ServerLab changes the host, so it is kept narrow:
+ServerLab changes the host in two places only: this switch and the Firewall / fail2ban pages (next section). Both are kept narrow:
 
 | Piece | What it may do |
 |---|---|
@@ -299,6 +299,26 @@ This is the one place where ServerLab changes the host, so it is kept narrow:
 | `/etc/systemd/system/serverlab-gpu-mode@.service` | Runs `prime-select %i` as root. Its `ExecCondition` refuses any profile other than `intel` and `on-demand` |
 
 ServerLab never reboots the host: reboot yourself to apply the change. Settings shows "reboot to apply" until you do. To remove the feature, delete both files above and run `sudo systemctl daemon-reload`; `install.sh --uninstall` removes them too.
+
+### Firewall and fail2ban pages
+The **Firewall** page manages UFW and the **fail2ban** page bans and unbans addresses. Every control shows the exact command it runs (for example `sudo ufw allow in on tailscale0`), so the pages double as a reference for doing the same in a terminal. Both need root, so they go through one small helper:
+
+| Piece | What it may do |
+|---|---|
+| Web process | Validates the request and writes it to the `host_action_requests` table. No privileges, as before |
+| Collector | Writes the request to `/run/serverlab-host-action/inbox/` and starts `serverlab-host-action.service`, nothing else |
+| `/etc/polkit-1/rules.d/61-serverlab-host-action.rules` | Grants user `serverlab` the `start` verb on exactly that unit. No other unit, no stop or restart |
+| `/etc/systemd/system/serverlab-host-action.service` | Runs `/usr/local/libexec/serverlab/host-action.js` as root and exits |
+| `/usr/local/libexec/serverlab/host-action.js` | Root-owned copy of `host-action/` (the serverlab user cannot edit it). Reads only regular, non-symlink files owned by `serverlab`, validates them with the same schema as the web app, and runs only `ufw` and `fail2ban-client` with fixed argument shapes, without a shell |
+| `/etc/tmpfiles.d/serverlab-host-action.conf` | Creates `/run/serverlab-host-action/` (root), `inbox/` (serverlab may add files) and `outbox/` (serverlab may read results) at boot |
+
+What the helper accepts, and nothing else: `ufw status`, `ufw --force enable`, `ufw disable`, `ufw default allow|deny|reject incoming|outgoing|routed`, `ufw logging off|low|medium|high|full`, `ufw allow|deny|reject|limit in|out [on IFACE] [proto tcp|udp] [from ADDRESS/CIDR] [to any port PORT] [comment TEXT]`, `ufw --force delete N` (only if rule N still matches the rule you clicked), and `fail2ban-client status|version|get JAIL bantime|findtime|maxretry|set JAIL banip|unbanip ADDRESS`. Interface names, jail names, addresses, ports and comments are checked against strict patterns before anything runs.
+
+The Firewall page refuses to turn UFW on, set incoming traffic to deny, or delete a rule when that would leave no rule allowing SSH (port 22) or the `tailscale0` interface. You can override this after confirming you have console access.
+
+fail2ban is not installed by ServerLab. If it is missing, the fail2ban page shows the commands to install it.
+
+To remove the feature, delete the four files above and run `sudo systemctl daemon-reload`; `install.sh --uninstall` removes them too. Without them, both pages still show what an unprivileged user can see (whether UFW is enabled, its default policies, whether fail2ban is running) and are read-only.
 
 ### Intel GPU stats (optional)
 `intel_gpu_top` needs `CAP_PERFMON`. Without it, the Resources page shows "Intel iGPU detected, no stats". To turn stats on:
@@ -324,7 +344,7 @@ Check the result with `sudo systemd-analyze security serverlab-web serverlab-col
 |---|---|---|---|
 | `User=serverlab`, `NoNewPrivileges=yes` | ✓ | ✓ | No root, no setuid escalation |
 | `CapabilityBoundingSet=` (empty) | ✓ | ✓ | No capabilities (collector: `CAP_PERFMON` only if you add it) |
-| `ProtectSystem=strict` + `ReadWritePaths=/var/lib/serverlab` | ✓ | ✓ | Everything else is read-only |
+| `ProtectSystem=strict` + `ReadWritePaths=/var/lib/serverlab` | ✓ | ✓ | Everything else is read-only (collector: also the host-action inbox) |
 | `ProtectHome=yes`, `PrivateTmp=yes` | ✓ | ✓ | No home directories, private `/tmp` |
 | `ProtectKernelTunables/Modules/Logs`, `ProtectControlGroups` | ✓ | ✓ | `/proc/sys`, `/sys` and cgroups read-only |
 | `RestrictNamespaces`, `RestrictRealtime`, `RestrictSUIDSGID`, `LockPersonality` | ✓ | ✓ | Standard reductions |

@@ -1,8 +1,6 @@
-import { defineConfig } from "tsup";
+import { defineConfig, type Options } from "tsup";
 
-export default defineConfig({
-  entry: { index: "collector/index.ts" },
-  outDir: "dist/collector",
+const shared: Options = {
   format: ["cjs"],
   platform: "node",
   target: "node22",
@@ -10,5 +8,10 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
-  external: ["better-sqlite3", "@node-rs/argon2", "maxmind"],
-});
+};
+
+export default defineConfig([
+  { ...shared, entry: { index: "collector/index.ts" }, outDir: "dist/collector", external: ["better-sqlite3", "@node-rs/argon2", "maxmind"] },
+  /* The root helper is copied to /usr/local/libexec/serverlab/ as one self-contained file. */
+  { ...shared, entry: { index: "host-action/index.ts" }, outDir: "dist/host-action", sourcemap: false, noExternal: [/.*/] },
+]);

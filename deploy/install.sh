@@ -30,6 +30,11 @@ readonly CLI_PATH=/usr/local/sbin/serverlab
 readonly SETUP_MARKER=$DATA_DIR/.setup-complete
 readonly GPU_MODE_UNIT=serverlab-gpu-mode@.service
 readonly GPU_MODE_POLKIT_RULE=/etc/polkit-1/rules.d/60-serverlab-gpu-mode.rules
+readonly HOST_ACTION_UNIT=serverlab-host-action.service
+readonly HOST_ACTION_POLKIT_RULE=/etc/polkit-1/rules.d/61-serverlab-host-action.rules
+readonly HOST_ACTION_TMPFILES=/etc/tmpfiles.d/serverlab-host-action.conf
+readonly HOST_ACTION_HELPER_DIR=/usr/local/libexec/serverlab
+readonly HOST_ACTION_HELPER=$HOST_ACTION_HELPER_DIR/host-action.js
 readonly MINIMUM_NODE_MAJOR=22
 readonly WEB_URL=http://127.0.0.1:3000
 readonly COLLECTOR_GROUP_CANDIDATES=(docker systemd-journal adm utmp video render)
@@ -271,6 +276,7 @@ build_application() {
   log "building (npm run build)"
   env -u NODE_ENV NEXT_TELEMETRY_DISABLED=1 npm_config_update_notifier=false npm run build
   [[ -f $INSTALL_DIR/dist/collector/index.js ]] || die "build did not produce dist/collector/index.js"
+  [[ -f $INSTALL_DIR/dist/host-action/index.js ]] || die "build did not produce dist/host-action/index.js"
   [[ -d $INSTALL_DIR/.next ]] || die "build did not produce .next/"
 
   rm -rf "$INSTALL_DIR/.next/cache"
@@ -337,7 +343,34 @@ install_units() {
   fi
 
   install_gpu_mode_switch
+  install_host_action_helper
   systemctl daemon-reload
+}
+
+# Firewall and fail2ban pages: a root oneshot unit that runs queued ufw / fail2ban-client commands.
+# The helper is copied out of $INSTALL_DIR so the serverlab user can never edit code that runs as
+# root; the polkit rule lets serverlab start that one unit and nothing else (HARDENING.md §6).
+install_host_action_helper() {
+  log "installing the firewall and fail2ban helper ($HOST_ACTION_UNIT + polkit rule)"
+  install -d -m 755 -o root -g root "$HOST_ACTION_HELPER_DIR"
+  install -m 755 -o root -g root "$INSTALL_DIR/dist/host-action/index.js" "$HOST_ACTION_HELPER"
+  install -m 644 -o root -g root "$INSTALL_DIR/deploy/$HOST_ACTION_UNIT" "$UNIT_DIR/$HOST_ACTION_UNIT"
+  install -m 644 -o root -g root "$INSTALL_DIR/deploy/serverlab-host-action.tmpfiles" "$HOST_ACTION_TMPFILES"
+  systemd-tmpfiles --create "$HOST_ACTION_TMPFILES"
+  if [[ -d /etc/polkit-1/rules.d ]]; then
+    install -m 644 -o root -g root "$INSTALL_DIR/deploy/polkit/61-serverlab-host-action.rules" "$HOST_ACTION_POLKIT_RULE"
+  else
+    warn "polkit is not installed (no /etc/polkit-1/rules.d): the Firewall and fail2ban pages stay read-only. Install it with: sudo apt install polkitd, then re-run install.sh"
+  fi
+  if ! command -v fail2ban-client >/dev/null; then
+    log "fail2ban is not installed; the fail2ban page shows how to install it"
+  fi
+}
+
+remove_host_action_helper() {
+  rm -f "$UNIT_DIR/$HOST_ACTION_UNIT" "$HOST_ACTION_POLKIT_RULE" "$HOST_ACTION_TMPFILES" "$HOST_ACTION_HELPER"
+  rmdir "$HOST_ACTION_HELPER_DIR" 2>/dev/null || true
+  rm -rf /run/serverlab-host-action
 }
 
 # Settings > NVIDIA GPU power: only on hybrid-graphics hosts with prime-select. The polkit rule
@@ -532,6 +565,7 @@ uninstall_serverlab() {
   done
   rm -rf "$COLLECTOR_DROP_IN_DIR"
   rm -f "$UNIT_DIR/$GPU_MODE_UNIT" "$GPU_MODE_POLKIT_RULE"
+  remove_host_action_helper
   rm -f "$CLI_PATH"
   systemctl daemon-reload
   systemctl reset-failed --quiet 2>/dev/null || true
