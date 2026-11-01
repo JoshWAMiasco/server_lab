@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0 — 2026-11-01
+
+### Added
+- **Standalone installer** (`serverlab-installer-1.1.0.zip`): one script, `sudo bash install.sh --port 8443`, installs ServerLab on any Ubuntu server without Tailscale. It installs Node.js and nginx if needed, publishes ServerLab on the port you choose over HTTPS with a self-signed certificate (or plain HTTP with `--http`), opens the port in UFW when it is active, and remembers your choices for updates. Build it with `scripts/build-installer.sh`.
+- `install.sh --app-port N` (and `WEB_PORT` in `/etc/serverlab/serverlab.env`): run the web app on another local port when 3000 is taken.
+
+### Changed
+- The README logo sits on its own dark banner, so it reads on GitHub's light and dark themes.
+
 ## 1.0.0 — 2026-11-01
 
 The first public release of ServerLab: a small, Grafana-like dashboard for one homelab server, reachable only over your Tailscale tailnet.

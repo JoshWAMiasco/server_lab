@@ -35,6 +35,9 @@ All source files are in the repository under `deploy/`.
 
 ## 1. Before you start
 
+> **No Tailscale?** The standalone installer (README → "Without Tailscale") sets up nginx on a port you choose with a self-signed certificate instead of sections 2 and 3 below. Sections 5 (host hardening) and 6 (privileges) still apply. Restrict who can reach the port, for example with `--allow-from 192.168.1.0/24`, and keep SSH keys-only.
+
+
 | Need | Why | Check |
 |---|---|---|
 | Ubuntu Server (see above) | Supported target | `lsb_release -d` |

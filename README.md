@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JoshWAMiasco/server_lab/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v1.0.0-ff4655"></a>
+  <a href="https://github.com/JoshWAMiasco/server_lab/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v1.1.0-ff4655"></a>
   <a href="https://github.com/JoshWAMiasco/server_lab/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/JoshWAMiasco/server_lab/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-ff4655"></a>
   <img alt="Ubuntu Server 22.04 to 26.04" src="https://img.shields.io/badge/Ubuntu%20Server-22.04%20%E2%80%93%2026.04-ff4655">
@@ -30,7 +30,7 @@
 Most monitoring stacks are built for fleets: a time-series database, an agent, a dashboard server and an afternoon of configuration. ServerLab is for the one box under your desk.
 
 - **One install, no extra services.** It runs on the server it watches and keeps everything in a single SQLite file.
-- **Private by default.** It is reachable only over your [Tailscale](https://tailscale.com) tailnet, behind nginx, with one admin account.
+- **Private by default.** It is reachable only over your [Tailscale](https://tailscale.com) tailnet, behind nginx, with one admin account. No Tailscale? The [standalone installer](#without-tailscale-standalone-installer) publishes it on a port you choose.
 - **Knows a homelab.** It finds your Docker containers, systemd services, nginx sites and databases on its own, and tells you when something is exposed to your LAN.
 - **Teaches as you go.** The Firewall and fail2ban pages show the exact `ufw` and `fail2ban-client` command behind every button.
 
@@ -138,6 +138,37 @@ Then follow the **[hardening guide](docs/HARDENING.md)**: Tailscale, nginx as th
 | Remove everything | `sudo deploy/install.sh --uninstall --purge` |
 
 fail2ban is optional and not installed for you. The fail2ban page shows how.
+
+### Without Tailscale: standalone installer
+
+For a server on your LAN (or anywhere you don't run Tailscale), download `serverlab-installer-<version>.zip` from the [latest release](https://github.com/JoshWAMiasco/server_lab/releases/latest). Copy it to the Ubuntu server, then:
+
+```bash
+unzip serverlab-installer-*.zip
+cd serverlab-installer-*/
+sudo bash install.sh --port 8443
+```
+
+One script does everything:
+
+- installs Node.js 22, nginx and the other packages it needs (it asks first);
+- installs ServerLab;
+- puts nginx in front of it on the port you choose, with a self-signed HTTPS certificate;
+- opens that port in UFW if UFW is active;
+- prints the address and the one-time setup token.
+
+| Option | What it does |
+|---|---|
+| `--port N` | The port you open in the browser (default `8443`) |
+| `--http` | Plain HTTP instead of HTTPS. Only on a network you trust: passwords are sent unencrypted |
+| `--hostname NAME` | Name or IP used in links and the certificate (default: the server's IP) |
+| `--allow-from CIDR` | With UFW active, allow only this network, e.g. `192.168.1.0/24` |
+| `--app-port N` | Internal port of the app on `127.0.0.1` (default `3000`; change it if Grafana or another app uses 3000) |
+| `--uninstall [--purge]` | Remove ServerLab (`--purge` also deletes its data) |
+
+Your browser warns once about the self-signed certificate; the installer prints its fingerprint so you can check it. To update, unzip a newer installer and run `sudo bash install.sh` again: your port and other choices are remembered.
+
+The app itself never listens on the network: nginx is always in front, so visitors can't fake their IP address to get around sign-in throttling.
 
 ## Security model
 

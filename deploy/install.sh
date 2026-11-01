@@ -8,6 +8,8 @@
 #   sudo deploy/install.sh --uninstall         stop and remove the units; keep code, data, config
 #   sudo deploy/install.sh --uninstall --purge also delete data, config, cache, code copy and user
 #   add --yes to skip the --purge confirmation
+#   --app-port N      port of the web UI on 127.0.0.1 (default 3000; kept on later runs)
+#   --no-summary      skip the closing instructions (used by the standalone installer)
 #
 # Layout:
 #   /opt/serverlab                      code (root:serverlab, group read-only)
@@ -36,7 +38,6 @@ readonly HOST_ACTION_TMPFILES=/etc/tmpfiles.d/serverlab-host-action.conf
 readonly HOST_ACTION_HELPER_DIR=/usr/local/libexec/serverlab
 readonly HOST_ACTION_HELPER=$HOST_ACTION_HELPER_DIR/host-action.js
 readonly MINIMUM_NODE_MAJOR=22
-readonly WEB_URL=http://127.0.0.1:3000
 readonly COLLECTOR_GROUP_CANDIDATES=(docker systemd-journal adm utmp video render)
 readonly UNIT_FILES=(
   serverlab-web.service
@@ -55,6 +56,8 @@ purge=false
 assume_yes=false
 skip_geoip=false
 setup_token=""
+app_port=""
+show_summary=true
 setup_token_path=$DATA_DIR/setup-token
 
 log() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
@@ -78,6 +81,12 @@ parse_arguments() {
         ;;
       --yes | -y) assume_yes=true ;;
       --no-geoip) skip_geoip=true ;;
+      --no-summary) show_summary=false ;;
+      --app-port)
+        [[ ${2:-} =~ ^[0-9]+$ ]] && ((10#$2 >= 1 && 10#$2 <= 65535)) || die "--app-port needs a port number from 1 to 65535"
+        app_port=$((10#$2))
+        shift
+        ;;
       -h | --help)
         usage
         exit 0
@@ -458,7 +467,26 @@ prepare_setup_token() {
   chmod 600 "$token_path"
 }
 
+# The web UI's local port: --app-port, else WEB_PORT from the env file, else 3000.
+web_url() {
+  local port
+  port=$(env_value WEB_PORT)
+  printf 'http://127.0.0.1:%s' "${port:-3000}"
+}
+
+apply_app_port() {
+  [[ -n $app_port ]] || return 0
+  if grep -qE '^[[:space:]]*WEB_PORT=' "$ENV_FILE"; then
+    sed -i -E "s|^[[:space:]]*WEB_PORT=.*$|WEB_PORT=${app_port}|" "$ENV_FILE"
+  else
+    printf '\nWEB_PORT=%s\n' "$app_port" >>"$ENV_FILE"
+  fi
+  log "web UI port: 127.0.0.1:$app_port"
+}
+
 start_services() {
+  local web_address
+  web_address=$(web_url)
   log "enabling and starting services"
   systemctl enable --quiet serverlab-collector.service serverlab-web.service serverlab-geoip-update.timer
   systemctl restart serverlab-collector.service serverlab-web.service
@@ -466,16 +494,16 @@ start_services() {
 
   local attempt status=000
   for attempt in $(seq 1 30); do
-    status=$(curl --disable -s -o /dev/null -w '%{http_code}' "$WEB_URL/login" || true)
+    status=$(curl --disable -s -o /dev/null -w '%{http_code}' "$web_address/login" || true)
     if [[ $status != 000 ]]; then
       break
     fi
     sleep 1
   done
   if [[ $status == 000 ]]; then
-    warn "the web UI did not answer on $WEB_URL; check: journalctl -u serverlab-web -n 50"
+    warn "the web UI did not answer on $web_address; check: journalctl -u serverlab-web -n 50"
   else
-    log "web UI is answering on $WEB_URL (HTTP $status, attempt $attempt)"
+    log "web UI is answering on $web_address (HTTP $status, attempt $attempt)"
   fi
   if ! systemctl is-active --quiet serverlab-collector.service; then
     warn "the collector is not running; check: journalctl -u serverlab-collector -n 50"
@@ -501,8 +529,11 @@ print_summary() {
     echo "    Setup token:  $setup_token"
     echo "  The token is also in $setup_token_path and is deleted after setup."
     echo "  The URL works once nginx is set up as the tailnet gateway (next steps)."
-    echo "  Before that, tunnel the port and open http://localhost:3000/setup in Chrome or Firefox:"
-    echo "    ssh -L 3000:127.0.0.1:3000 <you>@<this-server>"
+    local local_port
+    local_port=$(env_value WEB_PORT)
+    local_port=${local_port:-3000}
+    echo "  Before that, tunnel the port and open http://localhost:$local_port/setup in Chrome or Firefox:"
+    echo "    ssh -L $local_port:127.0.0.1:$local_port <you>@<this-server>"
   else
     echo "  Open: $setup_url"
   fi
@@ -530,13 +561,16 @@ install_serverlab() {
   sync_code
   build_application
   write_env_file
+  apply_app_port
   install_cli
   install_units
   run_migrations
   download_geoip_database
   prepare_setup_token
   start_services
-  print_summary
+  if [[ $show_summary == true ]]; then
+    print_summary
+  fi
 }
 
 # --- Uninstall ---------------------------------------------------------------

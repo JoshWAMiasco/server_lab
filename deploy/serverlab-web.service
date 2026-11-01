@@ -1,5 +1,7 @@
 # ServerLab web UI (Next.js). Installed by deploy/install.sh to /etc/systemd/system/.
-# Listens on 127.0.0.1:3000 only. nginx on the Tailscale IP is the only way in (docs/HARDENING.md).
+# Listens on 127.0.0.1 only, port WEB_PORT (default 3000, set in /etc/serverlab/serverlab.env).
+# nginx is the only way in: on the Tailscale IP (docs/HARDENING.md) or, for the standalone
+# installer, on the port you chose.
 # The web process needs no host access: no extra groups, no outbound network.
 
 [Unit]
@@ -14,8 +16,9 @@ User=serverlab
 Group=serverlab
 WorkingDirectory=/opt/serverlab
 EnvironmentFile=/etc/serverlab/serverlab.env
-Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
-ExecStart=/usr/bin/env node /opt/serverlab/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3000
+# WEB_PORT here is the default; a WEB_PORT line in the EnvironmentFile overrides it.
+Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 WEB_PORT=3000
+ExecStart=/usr/bin/env node /opt/serverlab/node_modules/next/dist/bin/next start -H 127.0.0.1 -p ${WEB_PORT}
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=20
