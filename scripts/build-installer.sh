@@ -22,14 +22,16 @@ if [[ -n $(git status --porcelain --untracked-files=no) ]]; then
   echo "warning: uncommitted changes are not included (the zip is built from HEAD $(git rev-parse --short HEAD))" >&2
 fi
 
-staging_directory=$(mktemp -d)
-trap 'rm -rf "$staging_directory"' EXIT
-mkdir -p "$staging_directory/$bundle_name/serverlab"
-git archive --format=tar HEAD | tar -x -C "$staging_directory/$bundle_name/serverlab"
-cp "$staging_directory/$bundle_name/serverlab/installer/install.sh" "$staging_directory/$bundle_name/install.sh"
-chmod 755 "$staging_directory/$bundle_name/install.sh" "$staging_directory/$bundle_name/serverlab/deploy/"*.sh
-
 mkdir -p "$output_directory"
 rm -f "$zip_path"
-(cd "$staging_directory" && zip -q -r -X "$zip_path" "$bundle_name")
+# The source goes straight from git into the zip (file modes kept, e.g. deploy/*.sh stay executable).
+git archive --format=zip --prefix="$bundle_name/serverlab/" -o "$zip_path" HEAD
+
+# Then the one script to run, at the top of the folder.
+staging_directory=$(mktemp -d)
+trap 'rm -rf "$staging_directory"' EXIT
+mkdir -p "$staging_directory/$bundle_name"
+git show "HEAD:installer/install.sh" >"$staging_directory/$bundle_name/install.sh"
+chmod 755 "$staging_directory/$bundle_name/install.sh"
+(cd "$staging_directory" && zip -q -X "$zip_path" "$bundle_name/install.sh")
 echo "built $zip_path ($(du -h "$zip_path" | cut -f1), from $(git rev-parse --short HEAD))"
