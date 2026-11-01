@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="branding/logo-dark.svg">
-    <img src="branding/logo-light.svg" alt="ServerLab" width="380">
-  </picture>
+  <img src="branding/readme-banner.svg" alt="ServerLab" width="560">
 </p>
 
 <p align="center">
