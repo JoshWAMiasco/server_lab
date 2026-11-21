@@ -10,6 +10,9 @@
 #   add --yes to skip the --purge confirmation
 #   --app-port N      port of the web UI on 127.0.0.1 (default 3000; kept on later runs)
 #   --no-summary      skip the closing instructions (used by the standalone installer)
+#   SERVERLAB_OFFLINE=1 (environment) install from an offline bundle: use the node_modules
+#                     shipped with the source instead of npm ci, skip npm audit and downloads
+#   SERVERLAB_GEOIP_FILE=path (environment) install this GeoIP .mmdb instead of downloading one
 #
 # Layout:
 #   /opt/serverlab                      code (root:serverlab, group read-only)
@@ -63,6 +66,9 @@ setup_token=""
 app_port=""
 show_summary=true
 setup_token_path=$DATA_DIR/setup-token
+is_offline=false
+[[ ${SERVERLAB_OFFLINE:-} == 1 ]] && is_offline=true
+readonly is_offline
 
 log() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33mwarning:\033[0m %s\n' "$*" >&2; }
@@ -72,7 +78,7 @@ die() {
 }
 
 usage() {
-  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 parse_arguments() {
@@ -170,11 +176,14 @@ check_node() {
 install_apt_packages() {
   local missing=() package
   for package in "${APT_PACKAGES[@]}"; do
+    # Offline bundles ship prebuilt native modules, so nothing is compiled.
+    [[ $is_offline == true && $package == build-essential ]] && continue
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed'; then
       missing+=("$package")
     fi
   done
   if ((${#missing[@]} > 0)); then
+    [[ $is_offline == false ]] || die "offline install: packages missing (${missing[*]}); the offline installer installs them from its bundled .deb files"
     log "installing packages: ${missing[*]}"
     DEBIAN_FRONTEND=noninteractive apt-get update -q
     DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends "${missing[@]}"
@@ -258,8 +267,10 @@ sync_code() {
   fi
   log "copying $SOURCE_DIR to $INSTALL_DIR"
   install -d -m 750 "$INSTALL_DIR"
+  local module_exclusion=(--exclude=/node_modules/)
+  [[ $is_offline == true ]] && module_exclusion=()
   rsync -a --delete --chown="root:$SERVICE_USER" \
-    --exclude=/node_modules/ \
+    "${module_exclusion[@]}" \
     --exclude=/.next/ \
     --exclude=/dist/ \
     --exclude=/.git/ \
@@ -285,12 +296,17 @@ build_application() {
     rm -f "$INSTALL_DIR/.next/cache"
   fi
 
-  log "installing dependencies (npm ci)"
-  npm_config_update_notifier=false npm ci --include=dev --no-audit --no-fund
+  if [[ $is_offline == true ]]; then
+    [[ -f $INSTALL_DIR/node_modules/.package-lock.json ]] || die "offline install: $INSTALL_DIR/node_modules is missing from the bundle"
+    log "using the bundled dependencies (offline install)"
+  else
+    log "installing dependencies (npm ci)"
+    npm_config_update_notifier=false npm ci --include=dev --no-audit --no-fund
 
-  log "checking dependencies (npm audit)"
-  if ! npm audit --omit=dev --audit-level=high; then
-    warn "npm audit reports high-severity issues in production dependencies (see above)"
+    log "checking dependencies (npm audit)"
+    if ! npm audit --omit=dev --audit-level=high; then
+      warn "npm audit reports high-severity issues in production dependencies (see above)"
+    fi
   fi
 
   log "building (npm run build)"
@@ -421,13 +437,25 @@ run_migrations() {
 }
 
 download_geoip_database() {
-  if [[ $skip_geoip == true ]]; then
-    warn "skipping the GeoIP download (--no-geoip); the monthly timer will fetch it"
-    return
-  fi
   local geoip_path
   geoip_path=$(env_value GEOIP_DB_PATH)
   geoip_path=${geoip_path:-$DATA_DIR/dbip-city-lite.mmdb}
+  local bundled_geoip=${SERVERLAB_GEOIP_FILE:-}
+  if [[ -n $bundled_geoip && -s $bundled_geoip ]] && [[ ! -s $geoip_path || $bundled_geoip -nt $geoip_path ]]; then
+    log "installing the bundled GeoIP database"
+    install -m 600 -o "$SERVICE_USER" -g "$SERVICE_USER" "$bundled_geoip" "$geoip_path"
+    if [[ -f $(dirname "$bundled_geoip")/.geoip-version ]]; then
+      install -m 600 -o "$SERVICE_USER" -g "$SERVICE_USER" "$(dirname "$bundled_geoip")/.geoip-version" "$(dirname "$geoip_path")/.geoip-version"
+    fi
+  fi
+  if [[ $skip_geoip == true || $is_offline == true ]]; then
+    if [[ -s $geoip_path ]]; then
+      log "using the existing GeoIP database at $geoip_path"
+    else
+      warn "skipping the GeoIP download; the monthly timer fetches it once the server is online"
+    fi
+    return
+  fi
   log "downloading the DB-IP City Lite database"
   if ! as_service_user "$INSTALL_DIR/deploy/geoip-update.sh" "$geoip_path"; then
     warn "GeoIP download failed; logins show no location until serverlab-geoip-update.timer succeeds"

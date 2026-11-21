@@ -15,6 +15,11 @@
   - Both install types are supported: standalone and Tailscale.
   - After installing it checks that the services, the web UI and the collector are working. If they are not, it rolls back on its own.
   - To undo an update yourself, run `sudo bash /opt/serverlab/deploy/update.sh --rollback`.
+- **Offline USB installer for Ubuntu 24.04 (x86_64):**
+  - Build it with `scripts/build-offline-installer.sh`, and write it to a USB drive with `sudo scripts/write-installer-usb.sh /dev/sdX`.
+  - On the server, run `sudo bash install.sh`. No internet is needed.
+  - The USB carries Node.js, ServerLab with its npm modules, the Ubuntu packages it uses (nginx, Tailscale, sqlite3, dmidecode, polkit) and the GeoIP database.
+  - The installer checks every file before changing anything. On a server that already runs ServerLab, it updates it with a backup.
 - **Development:** `MOCK_GPU_COUNT`, `MOCK_CPU_CORES` and `MOCK_FORM_FACTOR` shape the mock host.
 
 ### Changed

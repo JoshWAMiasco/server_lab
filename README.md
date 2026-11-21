@@ -134,6 +134,7 @@ Then follow the **[hardening guide](docs/HARDENING.md)**: Tailscale, nginx as th
 |---|---|
 | Update with a backup and automatic rollback (from a clone outside `/opt/serverlab`) | `git pull && sudo bash deploy/update.sh` |
 | Update from your workstation (asks for the server once, then shows a menu) | `./update-serverlab.sh` |
+| Build an offline USB installer (Ubuntu 24.04, no internet on the server) | `scripts/build-offline-installer.sh`, then `sudo scripts/write-installer-usb.sh /dev/sdX` |
 | Same, without the menu | `scripts/update-server.sh you@server` |
 | Roll back the last update | `sudo bash /opt/serverlab/deploy/update.sh --rollback` |
 | Reset the admin password | `sudo serverlab reset-password` |

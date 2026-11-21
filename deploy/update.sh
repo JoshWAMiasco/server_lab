@@ -151,7 +151,10 @@ create_backup() {
     warn "no database at $database yet; only the code is backed up"
   fi
 
-  if ! tar -C "$INSTALL_DIR" --exclude=./node_modules --exclude=./.next --exclude=./dist -czf "$backup_directory/source.tar.gz" .; then
+  # Offline servers cannot run npm ci on rollback, so their backups keep node_modules.
+  local exclusions=(--exclude=./node_modules --exclude=./.next --exclude=./dist)
+  [[ ${SERVERLAB_OFFLINE:-} == 1 ]] && exclusions=(--exclude=./.next --exclude=./dist)
+  if ! tar -C "$INSTALL_DIR" "${exclusions[@]}" -czf "$backup_directory/source.tar.gz" .; then
     warn "could not save the current code from $INSTALL_DIR"
     return 1
   fi
