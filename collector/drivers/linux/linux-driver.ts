@@ -2,6 +2,7 @@ import fileSystem from "node:fs";
 import operatingSystem from "node:os";
 import type { CollectorDriver, DriverCapabilities, LoginWatchHandle } from "@/collector/driver";
 import { AppUsageSource } from "@/collector/drivers/linux/app-usage-source";
+import { readBootIdentity, readPreviousBootEnd, readShutdownIntent } from "@/collector/drivers/linux/boot-source";
 import { discoverDockerContainers } from "@/collector/drivers/linux/docker-source";
 import { readFilesystemUsage } from "@/collector/drivers/linux/filesystem-source";
 import { GpuSource } from "@/collector/drivers/linux/gpu-source";
@@ -9,6 +10,7 @@ import { readGpuPowerState, switchGpuPowerMode } from "@/collector/drivers/linux
 import { readHardwareTemperatures } from "@/collector/drivers/linux/hardware-monitor-source";
 import { readListeners, resolveListenerOwner, toPortItems, type ListenerOwner } from "@/collector/drivers/linux/listener-source";
 import { LoginSource } from "@/collector/drivers/linux/login-source";
+import { readMachineInventory } from "@/collector/drivers/linux/machine-inventory-source";
 import { NginxSource, toNginxItems } from "@/collector/drivers/linux/nginx-source";
 import { isProgramAvailable } from "@/collector/drivers/linux/run-command";
 import { readSecurityState, runThroughHelper } from "@/collector/drivers/linux/security-source";
@@ -17,7 +19,7 @@ import { readSystemdUnits, toSystemdItems } from "@/collector/drivers/linux/syst
 import { mapTailnetDevices, readMagicDnsName, readPeerApiPorts, readTailscaleStatus } from "@/collector/drivers/linux/tailscale-source";
 import { classifyBindAddress, widestBindScope } from "@/collector/parsers/parse-ss-listeners";
 import { isDockerAvailable } from "@/collector/sources/docker-client";
-import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ListeningSocket, ParsedLoginEvent, SystemSample } from "@/collector/types";
+import type { AppUsageReading, BootEndKind, BootIdentity, DiscoveredItem, FilesystemUsage, ListeningSocket, ParsedLoginEvent, SystemSample } from "@/collector/types";
 import { matchCatalogEntry } from "@/lib/catalog/catalog";
 import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import type { HostActionResult, SecurityAction, SecurityState } from "@/lib/security/security-types";
@@ -41,7 +43,7 @@ export class LinuxDriver implements CollectorDriver {
   private hasNginx = false;
 
   async detectCapabilities(): Promise<DriverCapabilities> {
-    const [gpus, hasDocker, hasSystemd, temperatures, hasJournal, hasNginx, tailscaleStatus, hasLast, hasWtmpdb] = await Promise.all([
+    const [gpus, hasDocker, hasSystemd, temperatures, hasJournal, hasNginx, tailscaleStatus, hasLast, hasWtmpdb, machineInventory] = await Promise.all([
       this.gpuSource.detect(),
       isDockerAvailable(),
       isProgramAvailable("systemctl"),
@@ -51,6 +53,7 @@ export class LinuxDriver implements CollectorDriver {
       readTailscaleStatus(),
       isProgramAvailable("last"),
       isProgramAvailable("wtmpdb"),
+      readMachineInventory(),
     ]);
     this.hasDocker = hasDocker;
     this.hasNginx = hasNginx;
@@ -64,6 +67,7 @@ export class LinuxDriver implements CollectorDriver {
       nginx: hasNginx,
       tailscale: tailscaleStatus !== null,
       loginHistorySource: hasJournal ? "journal" : hasAuthLog ? "auth.log" : hasLast ? "wtmp" : hasWtmpdb ? "wtmpdb" : null,
+      machineInventory,
     };
   }
 
@@ -157,6 +161,18 @@ export class LinuxDriver implements CollectorDriver {
 
   readWarnings(): string[] {
     return [...this.nginxSource.warnings];
+  }
+
+  readBootIdentity(): Promise<BootIdentity> {
+    return readBootIdentity();
+  }
+
+  readShutdownIntent(): Promise<Exclude<BootEndKind, "crash"> | null> {
+    return readShutdownIntent();
+  }
+
+  readPreviousBootEnd(): Promise<Exclude<BootEndKind, "crash"> | null> {
+    return readPreviousBootEnd();
   }
 
   readHostname(): string {

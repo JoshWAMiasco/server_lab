@@ -1,0 +1,21 @@
+Accepted publickey for joshua from 100.101.102.103 port 50122 ssh2: ED25519 SHA256:abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG
+pam_unix(sshd:session): session opened for user joshua(uid=1000) by joshua(uid=0)
+New session 4 of user joshua.
+   joshua : TTY=pts/0 ; PWD=/home/joshua ; USER=root ; COMMAND=/usr/sbin/poweroff
+pam_unix(sudo:session): session opened for user root(uid=0) by joshua(uid=1000)
+System is powering down.
+Stopped target graphical.target - Graphical Interface.
+Stopped target multi-user.target - Multi-User System.
+Stopping serverlab-collector.service - ServerLab metrics collector...
+serverlab-collector.service: Deactivated successfully.
+Stopped serverlab-collector.service - ServerLab metrics collector.
+Stopped target basic.target - Basic System.
+Reached target umount.target - Unmount All Filesystems.
+Reached target shutdown.target - System Shutdown.
+Reached target final.target - Late Shutdown Phase.
+systemd-poweroff.service: Deactivated successfully.
+Finished systemd-poweroff.service - System Power Off.
+Reached target poweroff.target - System Power Off.
+Shutting down.
+Syncing filesystems and block devices.
+Powering off.

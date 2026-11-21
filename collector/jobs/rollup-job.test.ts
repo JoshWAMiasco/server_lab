@@ -11,7 +11,7 @@ function sampleAt(timestamp: number, cpuPercent: number): SystemSample {
   return {
     timestamp,
     cpuPercent,
-    corePercents: [cpuPercent, cpuPercent],
+    corePercents: [cpuPercent, cpuPercent / 2],
     loadAverages: [1, 1, 1],
     memory: { totalBytes: 1000, availableBytes: 500, usedBytes: 500, cachedBytes: 100, swapTotalBytes: 0, swapUsedBytes: 0 },
     cpuTemperatureCelsius: 50,
@@ -39,6 +39,16 @@ describe("rollups", () => {
       { metric: "cpu_pct", entity: "", avg: 30, max: 60, min: 10 },
       { metric: "gpu_util", entity: "0", avg: 15, max: 30, min: 5 },
       { metric: "mem_pct", entity: "", avg: 50, max: 50, min: 50 },
+    ]);
+  });
+
+  it("rolls up each CPU core as its own entity", () => {
+    const minuteStart = 10 * MINUTE;
+    for (const [offset, cpuPercent] of [[0, 10], [30_000, 30]] as const) writeSystemSample(database, sampleAt(minuteStart + offset, cpuPercent));
+    rollUpMinutes(database, minuteStart, minuteStart + MINUTE);
+    expect(database.$client.prepare("SELECT entity, avg, max FROM metric_rollups WHERE metric = 'cpu_core_pct' ORDER BY entity").all()).toEqual([
+      { entity: "0", avg: 20, max: 30 },
+      { entity: "1", avg: 10, max: 15 },
     ]);
   });
 

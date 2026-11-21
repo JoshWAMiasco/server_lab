@@ -14,6 +14,7 @@
 # Layout:
 #   /opt/serverlab                      code (root:serverlab, group read-only)
 #   /var/lib/serverlab                  data: serverlab.db, setup-token, GeoIP database (700)
+#   /var/lib/serverlab/hardware         dmidecode output from the root boot unit (root, 755)
 #   /var/cache/serverlab                Next.js runtime cache (700)
 #   /etc/serverlab/serverlab.env        configuration and secrets (640 root:serverlab)
 #   /usr/local/sbin/serverlab           admin command (reset-password, migrate)
@@ -30,6 +31,8 @@ readonly UNIT_DIR=/etc/systemd/system
 readonly COLLECTOR_DROP_IN_DIR=$UNIT_DIR/serverlab-collector.service.d
 readonly CLI_PATH=/usr/local/sbin/serverlab
 readonly SETUP_MARKER=$DATA_DIR/.setup-complete
+readonly HARDWARE_DIR=$DATA_DIR/hardware
+readonly HARDWARE_INVENTORY_UNIT=serverlab-hardware-inventory.service
 readonly GPU_MODE_UNIT=serverlab-gpu-mode@.service
 readonly GPU_MODE_POLKIT_RULE=/etc/polkit-1/rules.d/60-serverlab-gpu-mode.rules
 readonly HOST_ACTION_UNIT=serverlab-host-action.service
@@ -44,8 +47,9 @@ readonly UNIT_FILES=(
   serverlab-collector.service
   serverlab-geoip-update.service
   serverlab-geoip-update.timer
+  serverlab-hardware-inventory.service
 )
-readonly APT_PACKAGES=(ca-certificates curl gzip openssl rsync sqlite3 build-essential python3)
+readonly APT_PACKAGES=(ca-certificates curl gzip openssl rsync sqlite3 build-essential python3 dmidecode)
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 SOURCE_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
@@ -68,7 +72,7 @@ die() {
 }
 
 usage() {
-  sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
 }
 
 parse_arguments() {
@@ -230,6 +234,10 @@ create_directories() {
   install -d -m 750 -o root -g "$SERVICE_USER" "$CONFIG_DIR"
   chown "root:$SERVICE_USER" "$CONFIG_DIR"
   chmod 750 "$CONFIG_DIR"
+  # Written by the root oneshot serverlab-hardware-inventory.service; the collector only reads it.
+  install -d -m 755 -o root -g root "$HARDWARE_DIR"
+  chown root:root "$HARDWARE_DIR"
+  chmod 755 "$HARDWARE_DIR"
 }
 
 stop_services() {
@@ -488,7 +496,11 @@ start_services() {
   local web_address
   web_address=$(web_url)
   log "enabling and starting services"
-  systemctl enable --quiet serverlab-collector.service serverlab-web.service serverlab-geoip-update.timer
+  systemctl enable --quiet serverlab-collector.service serverlab-web.service serverlab-geoip-update.timer "$HARDWARE_INVENTORY_UNIT"
+  # Root oneshot: records RAM slots, CPU sockets and serials for the Machine page (HARDENING.md).
+  if ! systemctl restart "$HARDWARE_INVENTORY_UNIT"; then
+    warn "the hardware inventory unit failed; the Machine page shows no RAM module details. Check: journalctl -u $HARDWARE_INVENTORY_UNIT"
+  fi
   systemctl restart serverlab-collector.service serverlab-web.service
   systemctl start serverlab-geoip-update.timer
 
@@ -594,7 +606,7 @@ uninstall_serverlab() {
 
   log "stopping and disabling ServerLab units"
   local unit
-  for unit in serverlab-geoip-update.timer serverlab-web.service serverlab-collector.service serverlab-geoip-update.service; do
+  for unit in serverlab-geoip-update.timer serverlab-web.service serverlab-collector.service serverlab-geoip-update.service "$HARDWARE_INVENTORY_UNIT"; do
     systemctl disable --now --quiet "$unit" 2>/dev/null || true
   done
   for unit in "${UNIT_FILES[@]}"; do
@@ -603,6 +615,7 @@ uninstall_serverlab() {
   rm -rf "$COLLECTOR_DROP_IN_DIR"
   rm -f "$UNIT_DIR/$GPU_MODE_UNIT" "$GPU_MODE_POLKIT_RULE"
   remove_host_action_helper
+  rm -rf "$HARDWARE_DIR"
   rm -f "$CLI_PATH"
   systemctl daemon-reload
   systemctl reset-failed --quiet 2>/dev/null || true

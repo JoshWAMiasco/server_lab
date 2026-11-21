@@ -10,6 +10,8 @@ export interface RouteMapEntry {
 export const ROUTE_MAP: readonly RouteMapEntry[] = [
   { routePath: "/", title: "Lobby", groupName: "Monitor" },
   { routePath: "/resources", title: "Resources", groupName: "Monitor" },
+  { routePath: "/machine", title: "Machine", groupName: "Monitor" },
+  { routePath: "/uptime", title: "Uptime", groupName: "Monitor" },
   { routePath: "/apps", title: "Applications", groupName: "Monitor" },
   { routePath: "/watcher", title: "User Watcher", groupName: "Monitor" },
   { routePath: "/alerts", title: "Alerts", groupName: "Monitor" },

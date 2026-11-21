@@ -35,7 +35,7 @@ readonly MINIMUM_NODE_MAJOR=22
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 readonly SCRIPT_DIR
 readonly SOURCE_DIR=$SCRIPT_DIR/serverlab
-VERSION=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "$SOURCE_DIR/package.json" 2>/dev/null | head -n 1)
+VERSION=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "$SOURCE_DIR/package.json" 2>/dev/null | head -n 1 || true)
 readonly VERSION=${VERSION:-unknown}
 
 action=install
@@ -154,7 +154,7 @@ check_system() {
 }
 
 primary_address() {
-  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | grep -v '^127\.' | head -n 1
+  hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | grep -v '^127\.' | head -n 1 || true
 }
 
 node_major() {
@@ -202,9 +202,10 @@ ensure_packages() {
   DEBIAN_FRONTEND=noninteractive apt-get install -y -q "${missing[@]}"
 }
 
-# Which program listens on a TCP port (empty when free).
+# Which program listens on a TCP port (empty when free). A free port makes grep fail, which
+# pipefail would turn into a silent exit of the whole installer, hence `|| true`.
 port_owner() {
-  ss -Htlnp "sport = :$1" 2>/dev/null | grep -oE 'users:\(\("[^"]+"' | head -n 1 | sed -E 's/users:\(\("//'
+  ss -Htlnp "sport = :$1" 2>/dev/null | grep -oE 'users:\(\("[^"]+"' | head -n 1 | sed -E 's/^users:\(\("//; s/"$//' || true
 }
 
 check_ports() {
@@ -483,9 +484,15 @@ uninstall_standalone() {
   log "done. nginx itself and Node.js were left installed."
 }
 
+on_error() {
+  warn "the installer stopped at line $1 ($2)."
+  warn "Fix the problem above and run it again; your data and settings are kept."
+}
+
 main() {
   parse_arguments "$@"
   check_system "$@"
+  trap 'on_error $LINENO "$BASH_COMMAND"' ERR
   if [[ $action == uninstall ]]; then
     uninstall_standalone
   else

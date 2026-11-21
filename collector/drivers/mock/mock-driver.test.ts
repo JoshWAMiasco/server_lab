@@ -19,6 +19,7 @@ describe("collector with the mock driver", () => {
     const samples = readSystemSamplesSince(database, 0);
     expect(samples).toHaveLength(3);
     expect(samples[0]?.corePercents).toHaveLength(12);
+    expect(samples[0]?.gpus).toHaveLength(2);
     expect(samples[0]?.gpus[0]?.name).toContain("RTX");
     expect(samples[0]?.networkInterfaces.map((networkInterface) => networkInterface.interfaceName)).toContain("enp3s0");
   });

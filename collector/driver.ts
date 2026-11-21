@@ -1,7 +1,7 @@
 import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import type { HostActionResult, SecurityAction, SecurityState } from "@/lib/security/security-types";
 import type { GeolocationResult } from "@/lib/watcher/geolocation";
-import type { AppUsageReading, DiscoveredItem, FilesystemUsage, GpuDevice, ParsedLoginEvent, SystemSample } from "@/collector/types";
+import type { AppUsageReading, BootEndKind, BootIdentity, DiscoveredItem, FilesystemUsage, GpuDevice, MachineInventory, ParsedLoginEvent, SystemSample } from "@/collector/types";
 
 export interface DriverCapabilities {
   gpus: GpuDevice[];
@@ -12,6 +12,8 @@ export interface DriverCapabilities {
   nginx: boolean;
   tailscale: boolean;
   loginHistorySource: string | null;
+  /** Motherboard, CPU, RAM modules, disks and NICs for the Machine page. */
+  machineInventory: MachineInventory;
 }
 
 export interface LoginWatchHandle {
@@ -40,6 +42,12 @@ export interface CollectorDriver {
   /** The MagicDNS name (or host name) used for Lobby links. */
   readPublicHostname(): Promise<string>;
   readHostname(): string;
+  /** The current boot's id and start time, for the uptime streak in `boot_sessions`. */
+  readBootIdentity(): Promise<BootIdentity>;
+  /** Called on SIGTERM: "reboot"/"shutdown" when the host is going down that way, null for a plain service stop. */
+  readShutdownIntent(): Promise<Exclude<BootEndKind, "crash"> | null>;
+  /** Called after a new boot when the last one ended unrecorded: how the previous boot ended, from the journal, or null if unknown. */
+  readPreviousBootEnd(): Promise<Exclude<BootEndKind, "crash"> | null>;
   /** Problems met while reading sources (unparseable nginx files…), shown in Settings. */
   readWarnings?(): string[];
   /** Hybrid-graphics hosts: the NVIDIA GPU's PRIME mode and whether a reboot is pending. */

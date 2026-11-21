@@ -55,3 +55,6 @@ next-env.d.ts
 /e2e/.auth/
 /playwright-report/
 /test-results/
+
+# saved server for ./update-serverlab.sh
+/.serverlab-server.conf

@@ -1,0 +1,8 @@
+{
+   "blockdevices": [
+      {"name":"loop0", "model":null, "vendor":null, "serial":null, "size":"58363904", "rota":"0", "tran":null, "type":"loop", "rev":null},
+      {"name":"sda", "model":"ST2000DM008-2FR102", "vendor":"ATA     ", "serial":"ZFL1ABCD", "size":"2000398934016", "rota":"1", "tran":"sata", "type":"disk", "rev":"0001"},
+      {"name":"vda", "model":null, "vendor":"0x1af4", "serial":null, "size":"53687091200", "rota":"1", "tran":null, "type":"disk", "rev":null},
+      {"name":"md0", "model":null, "vendor":null, "serial":null, "size":"2000263643136", "rota":"1", "tran":null, "type":"raid1", "rev":null}
+   ]
+}

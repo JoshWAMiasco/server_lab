@@ -253,7 +253,7 @@ Login timestamps need an accurate clock. Check: `timedatectl status` shows `Syst
 ---
 
 ## 6. ServerLab process privileges
-Both units run as `serverlab`. Neither gets root or a capability by default.
+Both units run as `serverlab`. Neither gets root or a capability by default. The only ServerLab units that run as root are the narrow oneshot units described below (GPU power switch, firewall helper, hardware inventory).
 
 | Unit | Extra groups | Network |
 |---|---|---|
@@ -323,6 +323,18 @@ fail2ban is not installed by ServerLab. If it is missing, the fail2ban page show
 
 To remove the feature, delete the four files above and run `sudo systemctl daemon-reload`; `install.sh --uninstall` removes them too. Without them, both pages still show what an unprivileged user can see (whether UFW is enabled, its default policies, whether fail2ban is running) and are read-only.
 
+### Hardware inventory unit
+The **Machine** page and the RAM module table need details that only root can read: RAM slots and modules, processor sockets and serial numbers live in the firmware's SMBIOS tables (`/sys/firmware/dmi/tables/DMI`, mode 0400 root). So `install.sh` installs `dmidecode` and one small root unit:
+
+| Piece | What it does |
+|---|---|
+| `/etc/systemd/system/serverlab-hardware-inventory.service` | `Type=oneshot`, runs once at boot (and on each `install.sh`): `dmidecode -t 0,1,2,3,4,16,17` (BIOS, system, board, chassis, processor, memory array, memory devices). It only **reads** firmware tables and runs no ServerLab code |
+| `/var/lib/serverlab/hardware/dmidecode.txt` | Its output, written to a `.tmp` file and renamed (atomic), `0644 root:root` in a `0755 root:root` directory. The collector reads it and cannot change it |
+
+The unit is sandboxed: `ProtectSystem=strict` with `/var/lib/serverlab/hardware` as the only writable path, no network (`PrivateNetwork=yes`), `NoNewPrivileges=yes`, `SystemCallFilter=@system-service`, and a capability set of `CAP_DAC_READ_SEARCH` (to reach the directory inside the `0700` data directory) and `CAP_SYS_RAWIO` (for `/dev/mem`, used only by kernels without the sysfs tables). Check it with `sudo systemd-analyze security serverlab-hardware-inventory`.
+
+Without the unit, the Machine page still shows what an unprivileged user can read (`/sys/class/dmi/id`, `lscpu`, `lsblk`, `/sys/class/net`, ECC boards' EDAC sysfs) and says "install the hardware inventory unit" where serials or module details are missing. To remove it: `sudo systemctl disable --now serverlab-hardware-inventory`, delete the unit and `/var/lib/serverlab/hardware`; `install.sh --uninstall` does both.
+
 ### Intel GPU stats (optional)
 `intel_gpu_top` needs `CAP_PERFMON`. Without it, the Resources page shows "Intel iGPU detected, no stats". To turn stats on:
 ```bash
@@ -335,6 +347,8 @@ EOF
 sudo systemctl daemon-reload && sudo systemctl restart serverlab-collector
 ```
 `CAP_PERFMON` lets the collector read performance counters for the whole system. It is scoped to the collector unit only. Remove `perfmon.conf` to undo it.
+
+Discrete Intel Arc GPUs report VRAM (when the driver exposes `mem_info_vram_*`), temperature and power through sysfs without `intel_gpu_top`; only the utilization needs it.
 
 ### What the collector cannot see
 - **Process names of other users' sockets.** `ss -tlnp` names processes only for sockets owned by `serverlab`. Listen addresses and ports are always visible, so the exposure check still works.

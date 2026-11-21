@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { parkPointer } from "./park-pointer";
 
 test.describe.configure({ mode: "serial" });
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/security/firewall");
   await expect(page.getByTestId("firewall-status")).toHaveText(/active/i);
+  await parkPointer(page);
 });
 
 test("shows status, policies and numbered rules with their commands", async ({ page }) => {

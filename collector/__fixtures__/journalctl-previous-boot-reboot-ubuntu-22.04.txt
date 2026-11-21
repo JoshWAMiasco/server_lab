@@ -1,0 +1,11 @@
+Stopping ServerLab metrics collector...
+serverlab-collector.service: Deactivated successfully.
+Stopped ServerLab metrics collector.
+Stopped target Basic System.
+Reached target Unmount All Filesystems.
+Reached target System Shutdown.
+Reached target Late Shutdown Phase.
+systemd-reboot.service: Deactivated successfully.
+Finished System Reboot.
+Reached target System Reboot.
+Shutting down.

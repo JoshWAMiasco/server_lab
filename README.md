@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JoshWAMiasco/server_lab/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v1.1.0-ff4655"></a>
+  <a href="https://github.com/JoshWAMiasco/server_lab/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v1.2.0-ff4655"></a>
   <a href="https://github.com/JoshWAMiasco/server_lab/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/JoshWAMiasco/server_lab/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-ff4655"></a>
   <img alt="Ubuntu Server 22.04 to 26.04" src="https://img.shields.io/badge/Ubuntu%20Server-22.04%20%E2%80%93%2026.04-ff4655">
@@ -132,7 +132,10 @@ Then follow the **[hardening guide](docs/HARDENING.md)**: Tailscale, nginx as th
 
 | Task | Command |
 |---|---|
-| Update | `git pull && sudo deploy/install.sh` |
+| Update with a backup and automatic rollback (from a clone outside `/opt/serverlab`) | `git pull && sudo bash deploy/update.sh` |
+| Update from your workstation (asks for the server once, then shows a menu) | `./update-serverlab.sh` |
+| Same, without the menu | `scripts/update-server.sh you@server` |
+| Roll back the last update | `sudo bash /opt/serverlab/deploy/update.sh --rollback` |
 | Reset the admin password | `sudo serverlab reset-password` |
 | Remove (keep data) | `sudo deploy/install.sh --uninstall` |
 | Remove everything | `sudo deploy/install.sh --uninstall --purge` |
@@ -166,7 +169,7 @@ One script does everything:
 | `--app-port N` | Internal port of the app on `127.0.0.1` (default `3000`; change it if Grafana or another app uses 3000) |
 | `--uninstall [--purge]` | Remove ServerLab (`--purge` also deletes its data) |
 
-Your browser warns once about the self-signed certificate; the installer prints its fingerprint so you can check it. To update, unzip a newer installer and run `sudo bash install.sh` again: your port and other choices are remembered.
+Your browser warns once about the self-signed certificate; the installer prints its fingerprint so you can check it. To update, unzip a newer installer and run `sudo bash install.sh` again: your port and other choices are remembered. Or, from a copy of the code on your workstation, run `scripts/update-server.sh you@server`: it backs up the database, updates with the same choices and rolls back if anything fails.
 
 The app itself never listens on the network: nginx is always in front, so visitors can't fake their IP address to get around sign-in throttling.
 

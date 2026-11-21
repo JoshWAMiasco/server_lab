@@ -1,0 +1,148 @@
+{
+   "lscpu": [
+      {
+         "field": "Architecture:",
+         "data": "x86_64",
+         "children": [
+            {
+               "field": "CPU op-mode(s):",
+               "data": "32-bit, 64-bit"
+            },
+            {
+               "field": "Address sizes:",
+               "data": "48 bits physical, 48 bits virtual"
+            },
+            {
+               "field": "Byte Order:",
+               "data": "Little Endian"
+            }
+         ]
+      },
+      {
+         "field": "CPU(s):",
+         "data": "16",
+         "children": [
+            {
+               "field": "On-line CPU(s) list:",
+               "data": "0-15"
+            }
+         ]
+      },
+      {
+         "field": "Vendor ID:",
+         "data": "AuthenticAMD",
+         "children": [
+            {
+               "field": "Model name:",
+               "data": "AMD Ryzen 7 5700G with Radeon Graphics",
+               "children": [
+                  {
+                     "field": "CPU family:",
+                     "data": "25"
+                  },
+                  {
+                     "field": "Model:",
+                     "data": "80"
+                  },
+                  {
+                     "field": "Thread(s) per core:",
+                     "data": "2"
+                  },
+                  {
+                     "field": "Core(s) per socket:",
+                     "data": "8"
+                  },
+                  {
+                     "field": "Socket(s):",
+                     "data": "1"
+                  },
+                  {
+                     "field": "Stepping:",
+                     "data": "0"
+                  },
+                  {
+                     "field": "Frequency boost:",
+                     "data": "enabled"
+                  },
+                  {
+                     "field": "CPU max MHz:",
+                     "data": "4672.0698"
+                  },
+                  {
+                     "field": "CPU min MHz:",
+                     "data": "1400.0000"
+                  },
+                  {
+                     "field": "BogoMIPS:",
+                     "data": "7600.33"
+                  },
+                  {
+                     "field": "Flags:",
+                     "data": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc svm"
+                  }
+               ]
+            }
+         ]
+      },
+      {
+         "field": "Virtualization features:",
+         "data": null,
+         "children": [
+            {
+               "field": "Virtualization:",
+               "data": "AMD-V"
+            }
+         ]
+      },
+      {
+         "field": "Caches (sum of all):",
+         "data": null,
+         "children": [
+            {
+               "field": "L1d:",
+               "data": "256 KiB (8 instances)"
+            },
+            {
+               "field": "L1i:",
+               "data": "256 KiB (8 instances)"
+            },
+            {
+               "field": "L2:",
+               "data": "4 MiB (8 instances)"
+            },
+            {
+               "field": "L3:",
+               "data": "16 MiB (1 instance)"
+            }
+         ]
+      },
+      {
+         "field": "NUMA:",
+         "data": null,
+         "children": [
+            {
+               "field": "NUMA node(s):",
+               "data": "1"
+            },
+            {
+               "field": "NUMA node0 CPU(s):",
+               "data": "0-15"
+            }
+         ]
+      },
+      {
+         "field": "Vulnerabilities:",
+         "data": null,
+         "children": [
+            {
+               "field": "Itlb multihit:",
+               "data": "Not affected"
+            },
+            {
+               "field": "Spectre v1:",
+               "data": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization"
+            }
+         ]
+      }
+   ]
+}

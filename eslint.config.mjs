@@ -107,7 +107,7 @@ const eslintConfig = defineConfig([
     files: ["utilities/merge-class-names.ts", "utilities/join-class-names.ts"],
     rules: { "no-restricted-imports": "off" },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "dist/**", "data/**", "drizzle/**", "next-env.d.ts", "quality-reports/**", "documentation/generated/**", "node_modules/**"]),
+  globalIgnores([".next/**", "out/**", "build/**", "dist/**", "data/**", "drizzle/**", "next-env.d.ts", "quality-reports/**", "documentation/generated/**", "node_modules/**", "playwright-report/**", "test-results/**", "e2e/.auth/**"]),
 ]);
 
 export default eslintConfig;

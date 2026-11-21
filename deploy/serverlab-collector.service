@@ -11,7 +11,10 @@
 [Unit]
 Description=ServerLab metrics collector
 Documentation=file:/opt/serverlab/docs/HARDENING.md
-After=network-online.target systemd-journald.service docker.service tailscaled.service
+# dbus.service: on shutdown the collector asks `systemctl list-jobs` (over D-Bus) whether the host
+# is rebooting or powering off, so D-Bus must stop after it. serverlab-hardware-inventory writes
+# /var/lib/serverlab/hardware/dmidecode.txt (root-owned, read-only here) before the first scan.
+After=network-online.target systemd-journald.service docker.service tailscaled.service dbus.service serverlab-hardware-inventory.service
 Wants=network-online.target
 
 [Service]

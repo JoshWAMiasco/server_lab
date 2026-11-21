@@ -1,16 +1,18 @@
 import operatingSystem from "node:os";
 import type { CollectorDriver, DriverCapabilities, LoginWatchHandle } from "@/collector/driver";
 import { MOCK_APPLICATIONS, MOCK_ATTACKER_ADDRESSES, MOCK_NGINX_SITES, MOCK_TAILNET_DEVICES, MOCK_USERNAMES } from "@/collector/drivers/mock/mock-fixtures";
+import { buildMockGpuDevices, buildMockMachineInventory, readMockCoreCount, readMockGpuModels, readMockMemoryTotalBytes } from "@/collector/drivers/mock/mock-hardware";
 import { MockSecurity } from "@/collector/drivers/mock/mock-security";
 import { RandomWalk } from "@/collector/drivers/mock/random-walk";
-import type { AppUsageReading, DiscoveredItem, FilesystemUsage, ParsedLoginEvent, SystemSample } from "@/collector/types";
+import type { AppUsageReading, BootIdentity, DiscoveredItem, FilesystemUsage, ParsedLoginEvent, SystemSample } from "@/collector/types";
 import type { GpuPowerMode, GpuPowerState } from "@/lib/hardware/gpu-power";
 import type { HostActionResult, SecurityAction, SecurityState } from "@/lib/security/security-types";
 import type { GeolocationResult } from "@/lib/watcher/geolocation";
 
 const GIBIBYTE = 1024 ** 3;
-const CORE_COUNT = 12;
 const DAY_MILLISECONDS = 86_400_000;
+const MOCK_BOOT_AGE_SECONDS = 2 * 86_400 + 4 * 3600;
+const MOCK_BOOT_ID = "6f1e2d3c-4b5a-4968-8776-mock00000001";
 
 const MOCK_LOCATIONS: Record<string, GeolocationResult> = {
   "185.220.101.34": { countryName: "Germany", countryCode: "DE", cityName: "Frankfurt am Main", latitude: 50.11, longitude: 8.68 },
@@ -31,18 +33,21 @@ function pickRandom<ItemType>(items: readonly ItemType[]): ItemType {
 
 /**
  * Fake data for development on macOS: random-walk metrics with occasional spikes, a dozen apps,
- * an NVIDIA GPU, nginx sites and a steady trickle of SSH brute-force attempts.
+ * MOCK_GPU_COUNT mixed-vendor GPUs, MOCK_CPU_CORES cores, nginx sites and a steady trickle of SSH brute-force attempts.
  */
 export class MockDriver implements CollectorDriver {
   readonly name = "mock" as const;
   private readonly startedAt = Date.now();
   private readonly cpuWalk = new RandomWalk(28, 6, 2, 100);
-  private readonly coreWalks = Array.from({ length: CORE_COUNT }, () => new RandomWalk(28, 14, 0, 100));
+  private readonly coreCount = readMockCoreCount();
+  private readonly coreWalks = Array.from({ length: this.coreCount }, () => new RandomWalk(28, 14, 0, 100));
+  private readonly gpuModels = readMockGpuModels();
+  private readonly memoryTotalBytes = readMockMemoryTotalBytes() || 32 * GIBIBYTE;
   private readonly memoryWalk = new RandomWalk(12.1, 0.15, 6, 30);
   private readonly temperatureWalk = new RandomWalk(54, 1.2, 35, 92);
   private readonly nvmeWalk = new RandomWalk(41, 0.6, 30, 70);
-  private readonly gpuWalk = new RandomWalk(35, 9, 0, 100);
-  private readonly gpuTemperatureWalk = new RandomWalk(58, 1, 30, 90);
+  private readonly gpuWalks = this.gpuModels.map((_, gpuIndex) => new RandomWalk(15 + gpuIndex * 12, 9, 0, 100));
+  private readonly gpuTemperatureWalks = this.gpuModels.map(() => new RandomWalk(52, 1, 30, 90));
   private readonly receiveWalk = new RandomWalk(4_000_000, 1_500_000, 20_000, 120_000_000);
   private readonly transmitWalk = new RandomWalk(900_000, 400_000, 10_000, 60_000_000);
   private readonly tailscaleWalk = new RandomWalk(150_000, 80_000, 0, 20_000_000);
@@ -54,7 +59,7 @@ export class MockDriver implements CollectorDriver {
 
   async detectCapabilities(): Promise<DriverCapabilities> {
     return {
-      gpus: [{ index: 0, pciAddress: "0000:01:00.0", vendor: "nvidia", name: "NVIDIA GeForce RTX 3060", driver: "nvidia 550.120", statsAvailable: true }],
+      gpus: buildMockGpuDevices(),
       docker: true,
       systemd: true,
       sensors: true,
@@ -62,19 +67,19 @@ export class MockDriver implements CollectorDriver {
       nginx: true,
       tailscale: true,
       loginHistorySource: "mock",
+      machineInventory: buildMockMachineInventory(),
     };
   }
 
   async sampleSystem(): Promise<SystemSample> {
     const cpuPercent = this.cpuWalk.next();
-    const memoryUsedBytes = this.memoryWalk.next() * GIBIBYTE;
-    const gpuUtilization = this.gpuWalk.next();
+    const memoryUsedBytes = Math.min(this.memoryTotalBytes * 0.95, (this.memoryWalk.next() / 32) * this.memoryTotalBytes);
     return {
       timestamp: Date.now(),
       cpuPercent,
       corePercents: this.coreWalks.map((coreWalk) => Math.min(100, Math.max(0, (coreWalk.next() + cpuPercent) / 2))),
-      loadAverages: [(cpuPercent / 100) * CORE_COUNT, (cpuPercent / 110) * CORE_COUNT, (cpuPercent / 120) * CORE_COUNT],
-      memory: { totalBytes: 32 * GIBIBYTE, availableBytes: 32 * GIBIBYTE - memoryUsedBytes, usedBytes: memoryUsedBytes, cachedBytes: 9.4 * GIBIBYTE, swapTotalBytes: 4 * GIBIBYTE, swapUsedBytes: 0.3 * GIBIBYTE },
+      loadAverages: [(cpuPercent / 100) * this.coreCount, (cpuPercent / 110) * this.coreCount, (cpuPercent / 120) * this.coreCount],
+      memory: { totalBytes: this.memoryTotalBytes, availableBytes: this.memoryTotalBytes - memoryUsedBytes, usedBytes: memoryUsedBytes, cachedBytes: this.memoryTotalBytes * 0.29, swapTotalBytes: 4 * GIBIBYTE, swapUsedBytes: 0.3 * GIBIBYTE },
       cpuTemperatureCelsius: this.temperatureWalk.next() + cpuPercent * 0.15,
       temperatures: [
         { label: "nvme0 Composite", celsius: this.nvmeWalk.next() },
@@ -88,8 +93,20 @@ export class MockDriver implements CollectorDriver {
         { deviceName: "nvme0n1", readBytesPerSecond: this.diskReadWalk.next(), writtenBytesPerSecond: this.diskWriteWalk.next() },
         { deviceName: "sda", readBytesPerSecond: this.diskReadWalk.next() * 0.3, writtenBytesPerSecond: this.diskWriteWalk.next() * 0.2 },
       ],
-      gpus: [{ gpuIndex: 0, vendor: "nvidia", name: "NVIDIA GeForce RTX 3060", utilizationPercent: gpuUtilization, memoryUsedBytes: (2 + gpuUtilization / 15) * GIBIBYTE, memoryTotalBytes: 12 * GIBIBYTE, temperatureCelsius: this.gpuTemperatureWalk.next() + gpuUtilization * 0.1, powerWatts: 25 + gpuUtilization * 1.4 }],
-      uptimeSeconds: 12 * 86_400 + 4 * 3600 + (Date.now() - this.startedAt) / 1000,
+      gpus: this.gpuModels.map((model, gpuIndex) => {
+        const utilization = this.gpuWalks[gpuIndex]?.next() ?? 0;
+        return {
+          gpuIndex,
+          vendor: model.vendor,
+          name: model.name,
+          utilizationPercent: utilization,
+          memoryUsedBytes: model.memoryTotalBytes === null ? null : Math.min(model.memoryTotalBytes, model.memoryTotalBytes * (0.15 + utilization / 140)),
+          memoryTotalBytes: model.memoryTotalBytes,
+          temperatureCelsius: model.vendor === "intel" ? null : (this.gpuTemperatureWalks[gpuIndex]?.next() ?? 50) + utilization * 0.1,
+          powerWatts: model.idleWatts === null || model.wattsPerPercent === null ? null : model.idleWatts + utilization * model.wattsPerPercent,
+        };
+      }),
+      uptimeSeconds: MOCK_BOOT_AGE_SECONDS + (Date.now() - this.startedAt) / 1000,
     };
   }
 
@@ -175,6 +192,19 @@ export class MockDriver implements CollectorDriver {
 
   async readPublicHostname(): Promise<string> {
     return process.env.PUBLIC_HOSTNAME || "homelab.tail1234.ts.net";
+  }
+
+  /** A stable fake boot: the mock never reboots, so the uptime streak keeps growing across restarts. */
+  async readBootIdentity(): Promise<BootIdentity> {
+    return { bootId: MOCK_BOOT_ID, bootedAt: Math.floor((this.startedAt - MOCK_BOOT_AGE_SECONDS * 1000) / 86_400_000) * 86_400_000 };
+  }
+
+  async readShutdownIntent(): Promise<"reboot" | "shutdown" | null> {
+    return null;
+  }
+
+  async readPreviousBootEnd(): Promise<"reboot" | "shutdown" | null> {
+    return "reboot";
   }
 
   readHostname(): string {

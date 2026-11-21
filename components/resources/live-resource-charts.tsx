@@ -3,9 +3,12 @@
 import { useRef, useState } from "react";
 import { LiveLineChart, type LiveLineChartHandle, type LiveLineSeries, type LivePoint } from "@/components/charts/live-line-chart";
 import { ChartPanel } from "@/components/resources/chart-panel";
+import { CpuCoreGrid, type CpuCoreReading } from "@/components/resources/cpu-core-grid";
+import { GpuOverview } from "@/components/resources/gpu-overview";
+import { MemoryOverview } from "@/components/resources/memory-overview";
 import { SERIES_COLOR_NAMES } from "@/components/resources/metric-tones";
 import { FormSwitch } from "@/components/primitives/form-check";
-import type { GpuDevice } from "@/collector/types";
+import type { GpuDevice, MemoryInventory } from "@/collector/types";
 import { useLiveStream } from "@/hooks/use-live-stream";
 import type { LiveSystemSample } from "@/lib/queries/live-types";
 
@@ -15,19 +18,20 @@ interface ChartDefinition {
   extract: (sample: LiveSystemSample) => (number | null)[];
 }
 
+const CORE_TREND_MILLISECONDS = 5 * 60_000;
+
 const colorAt = (seriesIndex: number) => SERIES_COLOR_NAMES[seriesIndex % SERIES_COLOR_NAMES.length] ?? "brand";
 
 function buildDefinitions(latestSample: LiveSystemSample, isTailscaleShown: boolean) {
-  const coreCount = latestSample.corePercents.length;
   const interfaces = latestSample.networkInterfaces.map((networkInterface) => networkInterface.interfaceName).filter((interfaceName) => isTailscaleShown || interfaceName !== "tailscale0");
   const devices = latestSample.disks.map((disk) => disk.device);
   const sensorLabels = latestSample.temperatures.map((temperature) => temperature.label);
   const gpus = latestSample.gpus;
 
   const cpu: ChartDefinition = {
-    key: `cpu-${coreCount}`,
-    series: [{ label: "Total", colorName: "brand", isFilled: true, borderWidth: 1.8 }, ...Array.from({ length: coreCount }, (_, coreIndex) => ({ label: `Core ${coreIndex}`, colorName: "foreground-faint" as const, opacity: 0.55, borderWidth: 0.6 }))],
-    extract: (sample) => [sample.cpuPercent, ...Array.from({ length: coreCount }, (_, coreIndex) => sample.corePercents[coreIndex] ?? null)],
+    key: "cpu",
+    series: [{ label: "Total", colorName: "brand", isFilled: true, borderWidth: 1.8 }],
+    extract: (sample) => [sample.cpuPercent],
   };
   const memory: ChartDefinition = {
     key: "memory",
@@ -71,19 +75,17 @@ function buildDefinitions(latestSample: LiveSystemSample, isTailscaleShown: bool
         return [diskRow?.readBytesPerSecond ?? null, diskRow?.writtenBytesPerSecond ?? null];
       }),
   };
-  const gpuDefinitions: ChartDefinition[] = gpus.map((gpu) => ({
-    key: `gpu-${gpu.gpuIndex}`,
-    series: [
-      { label: "Usage", colorName: "success", isFilled: true, borderWidth: 1.8 },
-      { label: "VRAM", colorName: "accent", isDashed: true },
-    ],
-    extract: (sample) => {
-      const reading = sample.gpus.find((candidate) => candidate.gpuIndex === gpu.gpuIndex);
-      const vramPercent = reading?.memoryUsed !== null && reading?.memoryUsed !== undefined && reading.memoryTotal ? (100 * reading.memoryUsed) / reading.memoryTotal : null;
-      return [reading?.utilizationPercent ?? null, vramPercent];
-    },
+  return { cpu, memory, temperatures, network, disk };
+}
+
+function readCoreTrends(samples: readonly LiveSystemSample[], latestSample: LiveSystemSample | undefined): CpuCoreReading[] {
+  if (!latestSample) return [];
+  const recentSamples = samples.filter((sample) => sample.timestamp >= latestSample.timestamp - CORE_TREND_MILLISECONDS);
+  return latestSample.corePercents.map((percentage, coreIndex) => ({
+    coreIndex,
+    percentage,
+    values: recentSamples.map((sample) => sample.corePercents[coreIndex]).filter((value): value is number => value !== undefined),
   }));
-  return { cpu, memory, temperatures, network, disk, gpuDefinitions };
 }
 
 function toPoints(samples: readonly LiveSystemSample[], definition: ChartDefinition): LivePoint[] {
@@ -91,18 +93,20 @@ function toPoints(samples: readonly LiveSystemSample[], definition: ChartDefinit
 }
 
 /**
- * The live chart grid of Resources (CPU, memory, GPUs, temperatures, network, disk I/O). The
- * first render uses the last hour of samples from the server; the SSE stream then appends.
- * GPUs that are present but report no stats show why instead of a chart.
+ * The live chart grid of Resources: CPU total with a per-core grid, memory with the module
+ * overview, one section per GPU, temperatures, network and disk I/O. The first render uses the
+ * last hour of samples from the server; the SSE stream then appends. GPUs that are present but
+ * report no stats show why instead of charts.
  *
  * @example
- * <LiveResourceCharts initialSamples={samples} windowMilliseconds={300_000} gpuDevices={gpus} />
+ * <LiveResourceCharts initialSamples={samples} windowMilliseconds={300_000} gpuDevices={gpus} memoryInventory={inventory?.memory ?? null} />
  */
-export function LiveResourceCharts({ initialSamples, windowMilliseconds, gpuDevices }: { initialSamples: readonly LiveSystemSample[]; windowMilliseconds: number; gpuDevices: readonly GpuDevice[] }) {
+export function LiveResourceCharts({ initialSamples, windowMilliseconds, gpuDevices, memoryInventory }: { initialSamples: readonly LiveSystemSample[]; windowMilliseconds: number; gpuDevices: readonly GpuDevice[]; memoryInventory: MemoryInventory | null }) {
   const samplesReference = useRef<LiveSystemSample[]>([...initialSamples]);
   const chartHandles = useRef(new Map<string, LiveLineChartHandle | null>());
   const [isTailscaleShown, setIsTailscaleShown] = useState(false);
   const [latestSample, setLatestSample] = useState<LiveSystemSample | undefined>(initialSamples.at(-1));
+  const [coreTrends, setCoreTrends] = useState(() => readCoreTrends(initialSamples, initialSamples.at(-1)));
   const definitions = latestSample ? buildDefinitions(latestSample, isTailscaleShown) : null;
 
   useLiveStream("system", (sample) => {
@@ -111,10 +115,11 @@ export function LiveResourceCharts({ initialSamples, windowMilliseconds, gpuDevi
     samples.push(sample);
     while (samples.length > 0 && (samples[0]?.timestamp ?? 0) < sample.timestamp - 3_600_000) samples.shift();
     const currentDefinitions = buildDefinitions(sample, isTailscaleShown);
-    for (const definition of [currentDefinitions.cpu, currentDefinitions.memory, currentDefinitions.temperatures, currentDefinitions.network, currentDefinitions.disk, ...currentDefinitions.gpuDefinitions]) {
+    for (const definition of [currentDefinitions.cpu, currentDefinitions.memory, currentDefinitions.temperatures, currentDefinitions.network, currentDefinitions.disk]) {
       chartHandles.current.get(definition.key)?.push({ timestamp: sample.timestamp, values: definition.extract(sample) });
     }
     setLatestSample(sample);
+    setCoreTrends(readCoreTrends(samples, sample));
   });
 
   if (!definitions || !latestSample) return <div className="py-16 text-center text-foreground-muted">Waiting for the first sample from the collector…</div>;
@@ -131,26 +136,29 @@ export function LiveResourceCharts({ initialSamples, windowMilliseconds, gpuDevi
       {...options}
     />
   );
-  const unavailableGpus = gpuDevices.filter((device) => !device.statsAvailable);
+  const coreCount = latestSample.corePercents.length;
 
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-      <ChartPanel title="CPU" subtitle={`total and ${latestSample.corePercents.length} cores`}>
-        {renderChart(definitions.cpu, { valueFormat: "percentage", maximumValue: 100, ariaLabel: "CPU usage, total and per core" })}
+      <ChartPanel title="CPU" subtitle={`${coreCount} core${coreCount === 1 ? "" : "s"}`}>
+        {renderChart(definitions.cpu, { valueFormat: "percentage", maximumValue: 100, ariaLabel: "Total CPU usage" })}
       </ChartPanel>
       <ChartPanel title="Memory" subtitle="used · cache · swap">
         {renderChart(definitions.memory, { valueFormat: "bytes", maximumValue: latestSample.memoryTotal, showsLegend: true, ariaLabel: "Memory used, cache and swap" })}
       </ChartPanel>
-      {definitions.gpuDefinitions.map((gpuDefinition, gpuIndex) => (
-        <ChartPanel key={gpuDefinition.key} title={`GPU ${latestSample.gpus[gpuIndex]?.gpuIndex ?? gpuIndex}`} subtitle={latestSample.gpus[gpuIndex]?.name}>
-          {renderChart(gpuDefinition, { valueFormat: "percentage", maximumValue: 100, showsLegend: true, ariaLabel: "GPU usage and VRAM" })}
+      {coreCount > 0 && (
+        <ChartPanel title="Per core" subtitle="current % · last 5 minutes" className="xl:col-span-2">
+          <CpuCoreGrid cores={coreTrends} />
         </ChartPanel>
-      ))}
-      {unavailableGpus.map((device) => (
-        <ChartPanel key={device.pciAddress} title={`GPU ${device.index}`} subtitle={device.name}>
-          <div className="flex h-[220px] items-center justify-center px-6 text-center text-foreground-muted">{device.unavailableReason ?? "Stats unavailable"}</div>
-        </ChartPanel>
-      ))}
+      )}
+      <ChartPanel title="Memory modules" subtitle="installed RAM · usage" className="xl:col-span-2">
+        <MemoryOverview memory={memoryInventory} sample={latestSample} />
+      </ChartPanel>
+      {(gpuDevices.length > 0 || latestSample.gpus.length > 0) && (
+        <div className="xl:col-span-2">
+          <GpuOverview gpuDevices={gpuDevices} latestSample={latestSample} readSamples={() => samplesReference.current} windowMilliseconds={windowMilliseconds} />
+        </div>
+      )}
       <ChartPanel title="Temperatures" subtitle="CPU, GPUs and sensors">
         {renderChart(definitions.temperatures, { valueFormat: "celsius", showsLegend: true, ariaLabel: "Temperatures" })}
       </ChartPanel>

@@ -1,0 +1,75 @@
+{
+   "blockdevices": [
+      {
+         "name": "loop0",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "size": 67108864,
+         "rota": false,
+         "tran": null,
+         "type": "loop",
+         "rev": null
+      },{
+         "name": "sda",
+         "model": "Samsung SSD 870 EVO 1TB",
+         "vendor": "ATA     ",
+         "serial": "S6PTNZ0T123456A",
+         "size": 1000204886016,
+         "rota": false,
+         "tran": "sata",
+         "type": "disk",
+         "rev": "SVT02B6Q"
+      },{
+         "name": "sdb",
+         "model": "WDC WD40EFZX-68AWUN0",
+         "vendor": "ATA     ",
+         "serial": "WD-WX12D3456789",
+         "size": 4000787030016,
+         "rota": true,
+         "tran": "sata",
+         "type": "disk",
+         "rev": "81.00B81"
+      },{
+         "name": "sdc",
+         "model": "Extreme Pro     ",
+         "vendor": "SanDisk ",
+         "serial": "323130394A453031",
+         "size": 1000170586112,
+         "rota": false,
+         "tran": "usb",
+         "type": "disk",
+         "rev": "1012"
+      },{
+         "name": "sr0",
+         "model": "DVD+-RW DU-8A5LH",
+         "vendor": "PLDS    ",
+         "serial": "PL1234567890",
+         "size": 1073741312,
+         "rota": true,
+         "tran": "sata",
+         "type": "rom",
+         "rev": "6D1M"
+      },{
+         "name": "zram0",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "size": 8589934592,
+         "rota": false,
+         "tran": null,
+         "type": "disk",
+         "rev": null
+      },{
+         "name": "nvme0n1",
+         "model": "Samsung SSD 980 PRO 2TB",
+         "vendor": null,
+         "serial": "S69ENF0R123456X",
+         "size": 2000398934016,
+         "rota": false,
+         "tran": "nvme",
+         "type": "disk",
+         "rev": "5B2QGXA7"
+      }
+   ]
+}

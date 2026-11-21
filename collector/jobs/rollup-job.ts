@@ -13,7 +13,7 @@ interface RollupSource {
 
 /*
  * Every raw metric that gets 1-minute buckets. `entity` is '' for host-wide metrics, otherwise the
- * GPU index, interface, mount or app key.
+ * core index, GPU index, interface, mount or app key.
  */
 const MINUTE_SOURCES: readonly RollupSource[] = [
   { metric: "cpu_pct", entityExpression: "''", valueExpression: "cpu_pct", fromClause: "metric_samples", timestampColumn: "ts" },
@@ -26,6 +26,7 @@ const MINUTE_SOURCES: readonly RollupSource[] = [
   { metric: "net_tx_bps", entityExpression: "''", valueExpression: "net_tx_bps", fromClause: "metric_samples", timestampColumn: "ts" },
   { metric: "disk_read_bps", entityExpression: "''", valueExpression: "disk_read_bps", fromClause: "metric_samples", timestampColumn: "ts" },
   { metric: "disk_write_bps", entityExpression: "''", valueExpression: "disk_write_bps", fromClause: "metric_samples", timestampColumn: "ts" },
+  { metric: "cpu_core_pct", entityExpression: "CAST(cpu_core_samples.core AS TEXT)", valueExpression: "cpu_core_samples.pct", fromClause: "cpu_core_samples JOIN metric_samples ON metric_samples.id = cpu_core_samples.sample_id", timestampColumn: "metric_samples.ts" },
   { metric: "gpu_util", entityExpression: "CAST(gpu_samples.gpu_index AS TEXT)", valueExpression: "gpu_samples.util_pct", fromClause: "gpu_samples JOIN metric_samples ON metric_samples.id = gpu_samples.sample_id", timestampColumn: "metric_samples.ts" },
   { metric: "gpu_temp_c", entityExpression: "CAST(gpu_samples.gpu_index AS TEXT)", valueExpression: "gpu_samples.temp_c", fromClause: "gpu_samples JOIN metric_samples ON metric_samples.id = gpu_samples.sample_id", timestampColumn: "metric_samples.ts" },
   { metric: "gpu_vram_used", entityExpression: "CAST(gpu_samples.gpu_index AS TEXT)", valueExpression: "gpu_samples.vram_used", fromClause: "gpu_samples JOIN metric_samples ON metric_samples.id = gpu_samples.sample_id", timestampColumn: "metric_samples.ts" },

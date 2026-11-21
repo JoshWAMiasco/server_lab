@@ -2,6 +2,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { CollectorDriver } from "@/collector/driver";
 import { AlertEngine, seedDefaultAlertRules } from "@/collector/alerts/alert-engine";
 import { writeDiscoveredItems } from "@/collector/discovery/discovery-writer";
+import { recordShutdownIntent, startBootSession, touchBootSession } from "@/collector/jobs/boot-session-job";
 import { createGpuPowerJob } from "@/collector/jobs/gpu-power-job";
 import { runManualHealthChecks } from "@/collector/jobs/manual-health-job";
 import { createSecurityJob } from "@/collector/jobs/security-job";
@@ -18,7 +19,7 @@ import { loginEvents } from "@/lib/schema/watcher";
 import { storeLoginEvent } from "@/lib/watcher/login-event-store";
 import { readEnvironment } from "@/lib/environment";
 
-const COLLECTOR_VERSION = "1.1.0";
+const COLLECTOR_VERSION = "1.2.0";
 const SAMPLE_INTERVAL_MILLISECONDS = Math.max(1000, Number(readEnvironment("SAMPLE_INTERVAL_MS") ?? 2000));
 const JOURNAL_CURSOR_KEY = "watcher.journalCursor";
 const BACKFILL_STATE_KEY = "watcher.backfill";
@@ -42,8 +43,9 @@ async function main() {
 
   seedDefaultAlertRules(database);
   if (driver.name === "mock") {
-    const { seedMockHistory } = await import("@/collector/drivers/mock/seed-history");
+    const { seedMockBootHistory, seedMockHistory } = await import("@/collector/drivers/mock/seed-history");
     seedMockHistory(database);
+    seedMockBootHistory(database, (await driver.readBootIdentity()).bootedAt);
   }
   runFullRollups(database);
   const alertEngine = new AlertEngine(database, hostname);
@@ -64,6 +66,10 @@ async function main() {
   };
   await detectCapabilities();
   writeHeartbeat();
+
+  const bootIdentity = await driver.readBootIdentity();
+  const previousBootEnd = await startBootSession(database, bootIdentity, () => driver.readPreviousBootEnd());
+  if (previousBootEnd) console.log(`[collector] New boot ${bootIdentity.bootId}; the previous boot ended with a ${previousBootEnd}`);
 
   let lastDiscoveryAt = 0;
   let isDiscovering = false;
@@ -101,6 +107,7 @@ async function main() {
 
   const stopFunctions = [
     runEvery("heartbeat", 5000, writeHeartbeat, { runImmediately: false }),
+    runEvery("boot session", 30_000, () => touchBootSession(database, bootIdentity.bootId), { runImmediately: false }),
     runEvery("capabilities", 10 * 60_000, detectCapabilities, { runImmediately: false }),
     runEvery("system sample", SAMPLE_INTERVAL_MILLISECONDS, async () => {
       const sample = await driver.sampleSystem();
@@ -169,15 +176,27 @@ async function main() {
     onCursor: (cursor) => writeSetting(database, JOURNAL_CURSOR_KEY, cursor),
   });
 
-  const shutDown = (signalName: string) => {
+  let isShuttingDown = false;
+  const shutDown = async (signalName: string) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
     console.log(`[collector] ${signalName} received, stopping`);
     for (const stop of stopFunctions) stop();
     loginWatch.stop();
+    if (signalName === "SIGTERM") {
+      const shutdownIntent = await Promise.race([driver.readShutdownIntent().catch(() => null), new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))]);
+      if (shutdownIntent) {
+        recordShutdownIntent(database, bootIdentity.bootId, shutdownIntent);
+        console.log(`[collector] The host is going down for a ${shutdownIntent}`);
+      } else {
+        touchBootSession(database, bootIdentity.bootId);
+      }
+    }
     database.$client.close();
     process.exit(0);
   };
-  process.on("SIGTERM", () => shutDown("SIGTERM"));
-  process.on("SIGINT", () => shutDown("SIGINT"));
+  process.on("SIGTERM", () => void shutDown("SIGTERM"));
+  process.on("SIGINT", () => void shutDown("SIGINT"));
 }
 
 main().catch((error: unknown) => {

@@ -1,0 +1,7 @@
+1702 systemd-reboot.service         start waiting
+1701 reboot.target                  start waiting
+1594 final.target                   start waiting
+1593 shutdown.target                start waiting
+1645 serverlab-collector.service    stop  running
+1652 umount.target                  start waiting
+1660 systemd-journal-flush.service  stop  waiting

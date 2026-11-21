@@ -1,0 +1,6 @@
+1911 poweroff.target                start waiting
+1912 systemd-poweroff.service       start waiting
+1880 final.target                   start waiting
+1879 shutdown.target                start waiting
+1845 serverlab-collector.service    stop  running
+1850 docker.service                 stop  running

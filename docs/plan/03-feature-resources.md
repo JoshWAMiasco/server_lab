@@ -13,7 +13,7 @@
 | Network | `/proc/net/dev` delta; skip `lo`, `docker*`, `veth*`, `br-*`, `tailscale0` (configurable) | tailscale0 shown separately (toggle) |
 | Disk I/O | `/proc/diskstats` sectors delta × 512; physical devices only (`sd*`, `nvme*n*`, `vd*`) | |
 | Disk usage | `statfs` per mount from `/proc/mounts`; exclude `tmpfs`, `overlay`, `squashfs`, `proc`… | every 60 s |
-| Uptime | `/proc/uptime` | |
+| Uptime | `boot_sessions` streak (see [12](12-feature-uptime.md)); kernel uptime from `/proc/uptime` | a reboot keeps the streak, a shutdown or crash resets it |
 
 ### GPU (fully dynamic, no configuration)
 Nothing is hard-coded or configured about the GPU. The collector detects it:
@@ -28,6 +28,18 @@ Nothing is hard-coded or configured about the GPU. The collector detects it:
 | AMD | `/sys/class/drm/card*/device/vendor == 0x1002` | `gpu_busy_percent`, `mem_info_vram_used/total`, hwmon `temp1_input` |
 | Intel | `vendor == 0x8086` | Best effort: `intel_gpu_top -J -s 2000` (needs `CAP_PERFMON` or root, see [09](09-hardening.md)); otherwise show only "Intel iGPU detected, no stats" |
 | None | none of the above | GPU panel hidden (the tile reads "No GPU detected") |
+
+## Per-core, GPU and memory panels (added in 1.2.0)
+- **CPU cores:** the CPU chart shows only the total. Under it, a grid has one small card per core, each with its current % and a 5-minute sparkline on a fixed 0–100 scale. History ranges read the per-core `cpu_core_pct` rollup (entity = core index).
+- **GPUs:**
+  - There is one block per detected GPU (the `gpus` capability, with any number of GPUs from any vendor).
+  - Each block shows a stat row (utilization, VRAM, temperature, power) and **two separate charts**: utilization % and VRAM in bytes. VRAM is never drawn on the utilization chart.
+  - With 3 or more GPUs, an "All GPUs" strip summarizes utilization.
+  - History shows `gpu_util` and `gpu_vram_used` as separate charts.
+- **Memory modules:**
+  - The root oneshot `serverlab-hardware-inventory.service` writes `dmidecode -t 0,1,2,3,4,16,17` to `/var/lib/serverlab/hardware/dmidecode.txt` at boot. The collector parses it into the `machineInventory` capability; EDAC sysfs is the fallback.
+  - Resources shows the slot count, the summary ("4 of 4 slots · 64 GB DDR5 @ 5600 MT/s") and a module table.
+  - The same inventory drives the Machine page (`/machine`).
 
 ## Page layout (wireframe)
 ```

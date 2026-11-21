@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { parkPointer } from "./park-pointer";
 
 const ADDRESS = "198.51.100.77";
 
@@ -7,6 +8,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeEach(async ({ page }) => {
   await page.goto("/security/fail2ban");
   await expect(page.getByTestId("jail-sshd")).toBeVisible();
+  await parkPointer(page);
 });
 
 test("lists jails with counts, settings and banned addresses", async ({ page }) => {

@@ -22,6 +22,13 @@
       "when": 1793529767994,
       "tag": "0002_host_action_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1795224355692,
+      "tag": "0003_boot_sessions",
+      "breakpoints": true
     }
   ]
 }

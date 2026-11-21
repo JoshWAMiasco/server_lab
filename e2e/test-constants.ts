@@ -7,6 +7,8 @@ export const AUTHENTICATION_STATE_PATH = "e2e/.auth/admin.json";
 export const DASHBOARD_PAGES = [
   { path: "/", heading: "Lobby" },
   { path: "/resources", heading: "Resources" },
+  { path: "/machine", heading: "Machine" },
+  { path: "/uptime", heading: "Uptime" },
   { path: "/apps", heading: "Applications" },
   { path: "/watcher", heading: "User Watcher" },
   { path: "/alerts", heading: "Alerts" },

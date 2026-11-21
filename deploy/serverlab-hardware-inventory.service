@@ -1,0 +1,60 @@
+# Writes the host's SMBIOS hardware tables for the ServerLab Machine page. Installed by
+# deploy/install.sh to /etc/systemd/system/ and run once per boot.
+#
+# Why root: the SMBIOS tables (/sys/firmware/dmi/tables/DMI, or /dev/mem on old kernels) are
+# readable by root only, and they hold what /sys/class/dmi/id does not expose to other users:
+# RAM slots and modules (type 16/17), processor sockets and clocks (type 4) and serial numbers.
+# The unit only READS firmware tables with `dmidecode` (BIOS, system, baseboard, chassis,
+# processor, memory array and memory devices) and writes one text file, atomically:
+#   /var/lib/serverlab/hardware/dmidecode.txt   (root:root 0644, read by serverlab-collector)
+# It runs no ServerLab code, has no network, and keeps no capabilities beyond reading the tables.
+# Without it the Machine page still works, minus serials and RAM module details.
+# See docs/HARDENING.md ("Hardware inventory unit").
+
+[Unit]
+Description=ServerLab: record the hardware inventory (dmidecode)
+Documentation=file:/opt/serverlab/docs/HARDENING.md
+ConditionPathIsDirectory=/var/lib/serverlab/hardware
+Before=serverlab-collector.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'dmidecode -t 0,1,2,3,4,16,17 > /var/lib/serverlab/hardware/dmidecode.txt.tmp && chmod 0644 /var/lib/serverlab/hardware/dmidecode.txt.tmp && mv -f /var/lib/serverlab/hardware/dmidecode.txt.tmp /var/lib/serverlab/hardware/dmidecode.txt'
+ExecStopPost=/bin/rm -f /var/lib/serverlab/hardware/dmidecode.txt.tmp
+TimeoutStartSec=30
+UMask=0022
+
+# The only writable path. /var/lib/serverlab itself is 0700 serverlab, so root needs
+# CAP_DAC_READ_SEARCH to reach the root-owned hardware/ directory inside it.
+ReadWritePaths=/var/lib/serverlab/hardware
+# CAP_SYS_RAWIO: dmidecode falls back to /dev/mem when the kernel has no sysfs DMI tables.
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH CAP_SYS_RAWIO
+AmbientCapabilities=
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateNetwork=yes
+IPAddressDeny=any
+RestrictAddressFamilies=AF_UNIX
+# /sys becomes read-only, which is all dmidecode needs from /sys/firmware/dmi/tables.
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+# Deliberately not set: PrivateDevices, DevicePolicy and ProtectClock (which implies a device
+# allow-list); they hide /dev/mem, the fallback above.
+
+[Install]
+WantedBy=multi-user.target

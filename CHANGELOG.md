@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.2.0 — 2026-11-21
+
+### Added
+- **Machine page** (`/machine`) shows every part of the host, drawn as a cut-away of the machine that matches its form factor (tower, laptop, mini PC or rack server).
+  - **Parts covered:** motherboard, BIOS, CPUs, GPUs, RAM modules, disks and network adapters. Click a part to see its details.
+  - **Live data:** CPU, GPU, RAM and disk badges update in place.
+- **Uptime page** (`/uptime`) records every boot with how it ended (reboot, shutdown, or crash / power loss). It shows a timeline, the longest streak, availability, and a table that can be exported.
+- **Memory modules:** the installed sticks are detected by slot, with size, type, speed, manufacturer and part number. This uses a new root oneshot unit, `serverlab-hardware-inventory.service`, that runs `dmidecode` at boot.
+- **Updates with backup and rollback:**
+  - `./update-serverlab.sh` is the easy way in. It remembers your server and offers a menu: update, quick update, preview, undo, backups, status and logs.
+  - `scripts/update-server.sh you@server` runs from your workstation. It checks this copy, uploads it over SSH and updates the server.
+  - `deploy/update.sh` runs on the server. Before installing, it stops ServerLab and saves the database and the current code to `/var/lib/serverlab/backups/`, keeping the newest 5.
+  - Both install types are supported: standalone and Tailscale.
+  - After installing it checks that the services, the web UI and the collector are working. If they are not, it rolls back on its own.
+  - To undo an update yourself, run `sudo bash /opt/serverlab/deploy/update.sh --rollback`.
+- **Development:** `MOCK_GPU_COUNT`, `MOCK_CPU_CORES` and `MOCK_FORM_FACTOR` shape the mock host.
+
+### Changed
+- **Uptime is now a streak:** reboots no longer reset it; a shutdown or crash does.
+- **Resources, CPU:** every CPU core has its own mini chart instead of faint lines in the CPU chart. Per-core history comes from a new `cpu_core_pct` rollup.
+- **Resources, GPUs:**
+  - Each GPU has its own block, with separate Utilization and VRAM charts (live and history). The page adapts to any number of GPUs from mixed vendors.
+  - With 3 or more GPUs, an "All GPUs" summary strip is added.
+- **GPU readings:** AMD GPUs report power draw, and Intel discrete GPUs report VRAM when the driver exposes it.
+
 ## 1.1.0 — 2026-11-01
 
 ### Added

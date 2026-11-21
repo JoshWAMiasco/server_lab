@@ -1,0 +1,37 @@
+Received disconnect from 100.101.102.103 port 51544:11: disconnected by user
+Disconnected from user joshua 100.101.102.103 port 51544
+pam_unix(sshd:session): session closed for user joshua
+Session 12 logged out. Waiting for processes to exit.
+System is rebooting.
+Removed session 12.
+Stopping session-3.scope - Session 3 of User joshua...
+Stopped target graphical.target - Graphical Interface.
+Stopped target multi-user.target - Multi-User System.
+Stopping serverlab-collector.service - ServerLab metrics collector...
+Stopping serverlab-web.service - ServerLab web interface...
+Stopping docker.service - Docker Application Container Engine...
+Stopping nginx.service - A high performance web server and a reverse proxy server...
+serverlab-collector.service: Deactivated successfully.
+Stopped serverlab-collector.service - ServerLab metrics collector.
+Stopped nginx.service - A high performance web server and a reverse proxy server.
+Stopped docker.service - Docker Application Container Engine.
+Stopped target network-online.target - Network is Online.
+Stopped target network.target - Network.
+Stopped target basic.target - Basic System.
+Stopped target sockets.target - Socket Units.
+Stopped target sysinit.target - System Initialization.
+Stopped target local-fs.target - Local File Systems.
+Unmounting boot-efi.mount - /boot/efi...
+boot-efi.mount: Deactivated successfully.
+Unmounted boot-efi.mount - /boot/efi.
+Reached target umount.target - Unmount All Filesystems.
+Stopped systemd-remount-fs.service - Remount Root and Kernel File Systems.
+Reached target shutdown.target - System Shutdown.
+Reached target final.target - Late Shutdown Phase.
+systemd-reboot.service: Deactivated successfully.
+Finished systemd-reboot.service - System Reboot.
+Reached target reboot.target - System Reboot.
+Shutting down.
+Syncing filesystems and block devices.
+Sending SIGTERM to remaining processes...
+Journal stopped
